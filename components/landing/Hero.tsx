@@ -380,6 +380,21 @@ export default function Hero() {
           </button>
         </form>
 
+        {/* Secondary CTAs */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, marginBottom: 14 }}>
+          <a href="/onboarding" style={{ fontSize: 13, color: "rgba(139,127,245,0.8)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}
+            onMouseEnter={e => e.currentTarget.style.color = "#8B7FF5"}
+            onMouseLeave={e => e.currentTarget.style.color = "rgba(139,127,245,0.8)"}>
+            I have an existing product →
+          </a>
+          <span style={{ width: 3, height: 3, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
+          <a href="/dashboard" style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}
+            onMouseEnter={e => e.currentTarget.style.color = "rgba(255,255,255,0.55)"}
+            onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.3)"}>
+            View dashboard
+          </a>
+        </div>
+
         {/* Social proof inline */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 12 }}>
           <div style={{ display: "flex", alignItems: "center" }}>
