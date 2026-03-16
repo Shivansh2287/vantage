@@ -378,7 +378,7 @@ export default function Hero() {
             onMouseEnter={(e) => (e.currentTarget.style.background = "#4336D4")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "#5746E8")}
           >
-            Generate PRD →
+            Generate Product →
           </button>
         </form>
 
@@ -400,7 +400,7 @@ export default function Hero() {
         {/* Social proof inline */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 12 }}>
           <div style={{ display: "flex", alignItems: "center" }}>
-            {["AK","SR","TM","RL"].map((init, i) => (
+            {["AK", "SR", "TM", "RL"].map((init, i) => (
               <div
                 key={init}
                 style={{
