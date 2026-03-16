@@ -223,7 +223,8 @@ export default function Hero() {
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    router.push("/workspace");
+    const idea = input.trim() || "Redesign the checkout flow to reduce payment drop-off";
+    router.push(`/workspace?idea=${encodeURIComponent(idea)}`);
   }
 
   return (
