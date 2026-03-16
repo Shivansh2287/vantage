@@ -113,9 +113,16 @@ function QueryPanel({ messages, onSend, loading, onInsert }: { messages: Message
     window.addEventListener("mouseup", onUp);
   }
   return (
-    <div style={{width:panelWidth,borderLeft:`1px solid ${C.border}`,display:"flex",flexDirection:"column",flexShrink:0,height:"100%",overflow:"hidden",position:"relative"}}>
-      {/* Drag handle */}
-      <div onMouseDown={onMouseDown} style={{position:"absolute",left:0,top:0,bottom:0,width:4,cursor:"col-resize",zIndex:10,background:"transparent"}} onMouseEnter={e=>(e.currentTarget.style.background="rgba(87,70,232,0.2)")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")}/>
+    <div style={{width:panelWidth,display:"flex",flexDirection:"column",flexShrink:0,height:"100%",overflow:"hidden",position:"relative"}}>
+      {/* Drag handle — straddles the left border for easy grabbing */}
+      <div
+        onMouseDown={onMouseDown}
+        style={{position:"absolute",left:-5,top:0,bottom:0,width:10,cursor:"col-resize",zIndex:10,display:"flex",alignItems:"center",justifyContent:"center"}}
+        onMouseEnter={e=>{(e.currentTarget.firstChild as HTMLElement).style.background="rgba(87,70,232,0.5)";(e.currentTarget.firstChild as HTMLElement).style.opacity="1";}}
+        onMouseLeave={e=>{(e.currentTarget.firstChild as HTMLElement).style.background=C.border;(e.currentTarget.firstChild as HTMLElement).style.opacity="1";}}
+      >
+        <div style={{width:1,height:"100%",background:C.border,transition:"background 0.15s"}}/>
+      </div>
       <div style={{padding:"13px 15px 11px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
         <span style={{fontSize:13,fontWeight:500,color:"rgba(0,0,0,0.65)"}}>Research</span>
         <span style={{fontSize:10,background:C.purpleBg,color:C.purpleLight,border:`1px solid ${C.purpleBorder}`,padding:"2px 7px",borderRadius:10}}>{messages.filter(m=>m.role==="ai").length} queries</span>
@@ -146,7 +153,7 @@ function QueryPanel({ messages, onSend, loading, onInsert }: { messages: Message
 function ConflictModal({ req, onClose }: { req: Req; onClose: () => void }) {
   return (
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.72)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,backdropFilter:"blur(4px)"}} onClick={onClose}>
-      <div style={{background:"#111",border:"1px solid rgba(245,180,69,0.3)",borderRadius:14,padding:26,maxWidth:460,width:"90%",fontFamily:"Inter,sans-serif"}} onClick={e=>e.stopPropagation()}>
+      <div style={{background:"#ffffff",border:"1px solid rgba(180,83,9,0.2)",borderRadius:14,padding:26,maxWidth:460,width:"90%",fontFamily:"Inter,sans-serif",boxShadow:"0 8px 40px rgba(0,0,0,0.12)"}} onClick={e=>e.stopPropagation()}>
         <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:18}}>
           <span style={{fontSize:16}}>⚠</span><span style={{fontSize:14,fontWeight:600,color:C.yellow}}>Requirement conflict</span>
           <button onClick={onClose} style={{marginLeft:"auto",background:"none",border:"none",color:C.textDim,cursor:"pointer",fontSize:20,lineHeight:1}}>×</button>
@@ -155,8 +162,8 @@ function ConflictModal({ req, onClose }: { req: Req; onClose: () => void }) {
           <span style={{fontSize:11,fontWeight:700,color:C.purpleLight,display:"block",marginBottom:4}}>{req.id}</span>
           <span style={{fontSize:13,color:"rgba(0,0,0,0.75)",lineHeight:1.5}}>{req.title}</span>
         </div>
-        <div style={{background:"rgba(245,180,69,0.06)",border:"1px solid rgba(245,180,69,0.18)",borderRadius:8,padding:"12px 14px",marginBottom:18}}>
-          <p style={{fontSize:12,color:"rgba(245,180,69,0.85)",lineHeight:1.65}}>{req.conflictNote}</p>
+        <div style={{background:"rgba(180,83,9,0.05)",border:"1px solid rgba(180,83,9,0.15)",borderRadius:8,padding:"12px 14px",marginBottom:18}}>
+          <p style={{fontSize:12,color:"#b45309",lineHeight:1.65}}>{req.conflictNote}</p>
         </div>
         <p style={{fontSize:11,fontWeight:600,color:C.textDim,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Suggested resolution</p>
         <p style={{fontSize:12,color:C.textMuted,lineHeight:1.65,marginBottom:20}}>Scope {req.id} to apply only for authenticated users. Guest users see a clean shipping form with browser autocomplete. See <strong style={{color:C.purpleLight}}>VAN-006</strong> for implementation details.</p>
@@ -181,7 +188,7 @@ function ExportModal({ onClose, ticketCount }: { onClose: () => void; ticketCoun
 
   return (
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,backdropFilter:"blur(4px)"}} onClick={onClose}>
-      <div style={{background:"#0f0f0f",border:`1px solid ${C.border}`,borderRadius:16,padding:28,maxWidth:500,width:"92%",fontFamily:"Inter,sans-serif"}} onClick={e=>e.stopPropagation()}>
+      <div style={{background:"#ffffff",border:`1px solid ${C.border}`,borderRadius:16,padding:28,maxWidth:500,width:"92%",fontFamily:"Inter,sans-serif",boxShadow:"0 8px 40px rgba(0,0,0,0.12)"}} onClick={e=>e.stopPropagation()}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
           <span style={{fontSize:16,fontWeight:600,color:C.text}}>Export Tickets</span>
           <button onClick={onClose} style={{background:"none",border:"none",color:C.textDim,cursor:"pointer",fontSize:20,lineHeight:1}}>×</button>
@@ -237,9 +244,9 @@ function ExportModal({ onClose, ticketCount }: { onClose: () => void; ticketCoun
         </div>
 
         {/* Pitch */}
-        <div style={{background:"rgba(87,70,232,0.08)",border:`1px solid ${C.purpleBorder}`,borderRadius:10,padding:"13px 16px"}}>
-          <p style={{fontSize:12,color:"rgba(200,190,255,0.8)",lineHeight:1.65,textAlign:"center"}}>
-            <strong style={{color:C.purpleLight}}>Vantage = the brain. Linear/Cursor = the hands.</strong><br/>
+        <div style={{background:"rgba(87,70,232,0.06)",border:`1px solid ${C.purpleBorder}`,borderRadius:10,padding:"13px 16px"}}>
+          <p style={{fontSize:12,color:C.textMuted,lineHeight:1.65,textAlign:"center"}}>
+            <strong style={{color:C.purple}}>Vantage = the brain. Linear/Cursor = the hands.</strong><br/>
             Your engineers never leave their tools. Vantage generates, they execute.
           </p>
         </div>
@@ -751,7 +758,7 @@ function FigmaView() {
       <div style={{flex:1,background:"rgba(0,0,0,0.01)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",position:"relative"}}>
         <div style={{position:"absolute",top:14,left:16,fontSize:11,color:C.textDim}}>Payment Step · 1440×900</div>
         {/* Wireframe */}
-        <div style={{background:"#1a1a1a",border:`1px solid ${C.border}`,borderRadius:8,width:580,padding:"24px 28px",fontFamily:"Inter,sans-serif"}}>
+        <div style={{background:"#ffffff",border:`1px solid ${C.border}`,borderRadius:8,width:580,padding:"24px 28px",fontFamily:"Inter,sans-serif",boxShadow:"0 2px 16px rgba(0,0,0,0.06)"}}>
           {/* Progress bar */}
           <div style={{display:"flex",gap:4,alignItems:"center",marginBottom:24,justifyContent:"center"}}>
             {["Cart","Shipping","Payment","Confirm"].map((s,i)=>(
