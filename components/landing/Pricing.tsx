@@ -1,7 +1,7 @@
 function CheckIcon({ color }: { color: string }) {
   return (
     <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ flexShrink: 0, marginTop: 2 }}>
-      <circle cx="6.5" cy="6.5" r="6" stroke={color} strokeOpacity="0.5"/>
+      <circle cx="6.5" cy="6.5" r="6" stroke={color} strokeOpacity="0.6"/>
       <path d="M4 6.5l2 2 3-3" stroke={color} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
@@ -15,7 +15,7 @@ const PLANS = [
     features: ["3 PRDs/month", "20 queries/month", "Basic web search"],
     cta: "Get started",
     featured: false,
-    checkColor: "#3EC98E",
+    checkColor: "#059669",
   },
   {
     name: "Pro",
@@ -24,7 +24,7 @@ const PLANS = [
     features: ["Unlimited PRDs + queries", "Full context import", "Ticket generation", "Agent prompt export", "Linear export"],
     cta: "Start free trial",
     featured: true,
-    checkColor: "#8B7FF5",
+    checkColor: "#5746E8",
   },
   {
     name: "Team",
@@ -33,7 +33,7 @@ const PLANS = [
     features: ["Everything in Pro", "Multiplayer editing", "GitHub + Notion + Figma", "Bidirectional Linear sync"],
     cta: "Talk to us",
     featured: false,
-    checkColor: "#3EC98E",
+    checkColor: "#059669",
   },
 ];
 
@@ -43,7 +43,7 @@ export default function Pricing() {
       id="pricing"
       style={{
         padding: "100px 24px",
-        borderTop: "1px solid rgba(255,255,255,0.06)",
+        borderTop: "1px solid rgba(0,0,0,0.07)",
       }}
     >
       <div style={{ maxWidth: 780, margin: "0 auto" }}>
@@ -53,13 +53,13 @@ export default function Pricing() {
               fontSize: 36,
               fontWeight: 600,
               letterSpacing: "-0.8px",
-              color: "#ffffff",
+              color: "#0f0f0f",
               marginBottom: 12,
             }}
           >
             Simple pricing
           </h2>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.4)" }}>
+          <p style={{ fontSize: 15, color: "rgba(0,0,0,0.45)" }}>
             Start free. Upgrade when it saves you a week of work.
           </p>
         </div>
@@ -72,8 +72,8 @@ export default function Pricing() {
             <div
               key={plan.name}
               style={{
-                background: plan.featured ? "rgba(100,86,230,0.08)" : "rgba(255,255,255,0.03)",
-                border: plan.featured ? "1px solid rgba(100,86,230,0.4)" : "1px solid rgba(255,255,255,0.07)",
+                background: plan.featured ? "rgba(87,70,232,0.05)" : "#ffffff",
+                border: plan.featured ? "1px solid rgba(87,70,232,0.3)" : "1px solid rgba(0,0,0,0.08)",
                 borderRadius: 14,
                 padding: 24,
                 display: "flex",
@@ -88,9 +88,9 @@ export default function Pricing() {
                     style={{
                       fontSize: 10,
                       fontWeight: 500,
-                      background: "rgba(100,86,230,0.25)",
-                      color: "#B4A8FF",
-                      border: "1px solid rgba(100,86,230,0.3)",
+                      background: "rgba(87,70,232,0.1)",
+                      color: "#5746E8",
+                      border: "1px solid rgba(87,70,232,0.2)",
                       padding: "3px 10px",
                       borderRadius: 20,
                       whiteSpace: "nowrap",
@@ -103,14 +103,14 @@ export default function Pricing() {
               )}
 
               <div>
-                <p style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: 12, letterSpacing: "0.02em" }}>
+                <p style={{ fontSize: 13, fontWeight: 500, color: "rgba(0,0,0,0.45)", marginBottom: 12, letterSpacing: "0.02em" }}>
                   {plan.name}
                 </p>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
-                  <span style={{ fontSize: 32, fontWeight: 600, color: "#ffffff", letterSpacing: "-0.8px" }}>
+                  <span style={{ fontSize: 32, fontWeight: 600, color: "#0f0f0f", letterSpacing: "-0.8px" }}>
                     {plan.price}
                   </span>
-                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>
+                  <span style={{ fontSize: 12, color: "rgba(0,0,0,0.35)" }}>
                     /{plan.priceNote}
                   </span>
                 </div>
@@ -120,7 +120,7 @@ export default function Pricing() {
                 {plan.features.map((f) => (
                   <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 9 }}>
                     <CheckIcon color={plan.checkColor} />
-                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>{f}</span>
+                    <span style={{ fontSize: 13, color: "rgba(0,0,0,0.55)", lineHeight: 1.4 }}>{f}</span>
                   </div>
                 ))}
               </div>
@@ -132,9 +132,9 @@ export default function Pricing() {
                   fontSize: 13,
                   fontWeight: 500,
                   borderRadius: 8,
-                  border: plan.featured ? "none" : "1px solid rgba(255,255,255,0.1)",
-                  background: plan.featured ? "#5746E8" : "rgba(255,255,255,0.05)",
-                  color: plan.featured ? "#ffffff" : "rgba(255,255,255,0.6)",
+                  border: plan.featured ? "none" : "1px solid rgba(0,0,0,0.12)",
+                  background: plan.featured ? "#5746E8" : "rgba(0,0,0,0.04)",
+                  color: plan.featured ? "#ffffff" : "rgba(0,0,0,0.6)",
                   cursor: "pointer",
                   fontFamily: "inherit",
                   transition: "background 0.15s",

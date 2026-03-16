@@ -4,11 +4,11 @@ import { useState, useEffect, useRef, FormEvent, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 const C = {
-  bg: "#080808", surface: "rgba(255,255,255,0.03)", border: "rgba(255,255,255,0.08)",
-  text: "#ffffff", textMuted: "rgba(255,255,255,0.45)", textDim: "rgba(255,255,255,0.22)",
-  purple: "#5746E8", purpleHover: "#4336D4", purpleLight: "#8B7FF5",
-  purpleBg: "rgba(100,86,230,0.12)", purpleBorder: "rgba(100,86,230,0.25)",
-  red: "#F87B72", yellow: "#F5B445", green: "#3ECF8E", orange: "#F97316",
+  bg: "#fafafa", surface: "rgba(0,0,0,0.02)", border: "rgba(0,0,0,0.08)",
+  text: "#0f0f0f", textMuted: "rgba(0,0,0,0.55)", textDim: "rgba(0,0,0,0.35)",
+  purple: "#5746E8", purpleHover: "#4336D4", purpleLight: "#5746E8",
+  purpleBg: "rgba(87,70,232,0.07)", purpleBorder: "rgba(87,70,232,0.2)",
+  red: "#dc2626", yellow: "#b45309", green: "#059669", orange: "#ea580c",
 };
 
 type Req = { id: string; title: string; priority: "P0"|"P1"|"P2"; effort: string; points: number; conflict: boolean; conflictNote?: string };
@@ -73,19 +73,19 @@ function GeneratingScreen({ idea, onDone }: { idea: string; onDone: () => void }
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:48}}>
         <VLogo size={32}/><span style={{fontSize:18,fontWeight:600,color:C.text,letterSpacing:"-0.3px"}}>Vantage</span>
       </div>
-      <div style={{background:C.purpleBg,border:`1px solid ${C.purpleBorder}`,color:"rgba(200,190,255,0.85)",fontSize:13,padding:"7px 18px",borderRadius:20,marginBottom:44,maxWidth:480,textAlign:"center",lineHeight:1.5,fontStyle:"italic"}}>"{idea}"</div>
+      <div style={{background:C.purpleBg,border:`1px solid ${C.purpleBorder}`,color:"#5746E8",fontSize:13,padding:"7px 18px",borderRadius:20,marginBottom:44,maxWidth:480,textAlign:"center",lineHeight:1.5,fontStyle:"italic"}}>"{idea}"</div>
       <div style={{width:340,marginBottom:32}}>
         {steps.map((s,i)=>(
           <div key={s} style={{display:"flex",alignItems:"center",gap:12,marginBottom:13,opacity:i<=step?1:0.18,transition:"opacity 0.35s"}}>
-            <div style={{width:20,height:20,borderRadius:"50%",flexShrink:0,background:i<step?C.green:i===step?C.purple:"rgba(255,255,255,0.08)",border:`1px solid ${i<step?C.green:i===step?C.purple:"rgba(255,255,255,0.12)"}`,display:"flex",alignItems:"center",justifyContent:"center",transition:"background 0.3s"}}>
+            <div style={{width:20,height:20,borderRadius:"50%",flexShrink:0,background:i<step?C.green:i===step?C.purple:"rgba(0,0,0,0.08)",border:`1px solid ${i<step?C.green:i===step?C.purple:"rgba(0,0,0,0.12)"}`,display:"flex",alignItems:"center",justifyContent:"center",transition:"background 0.3s"}}>
               {i<step&&<svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5L4 7L8 3" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               {i===step&&<div style={{width:6,height:6,borderRadius:"50%",background:"white"}}/>}
             </div>
-            <span style={{fontSize:14,color:i<=step?"rgba(255,255,255,0.85)":C.textDim}}>{s}</span>
+            <span style={{fontSize:14,color:i<=step?"rgba(0,0,0,0.85)":C.textDim}}>{s}</span>
           </div>
         ))}
       </div>
-      <div style={{width:340,height:3,background:"rgba(255,255,255,0.07)",borderRadius:2}}>
+      <div style={{width:340,height:3,background:"rgba(0,0,0,0.07)",borderRadius:2}}>
         <div style={{height:"100%",background:`linear-gradient(90deg,${C.purple},${C.purpleLight})`,borderRadius:2,width:`${progress}%`,transition:"width 0.45s ease"}}/>
       </div>
     </div>
@@ -95,30 +95,46 @@ function GeneratingScreen({ idea, onDone }: { idea: string; onDone: () => void }
 /* ══ QUERY PANEL ══ */
 function QueryPanel({ messages, onSend, loading, onInsert }: { messages: Message[]; onSend:(q:string)=>void; loading:boolean; onInsert:(r:string)=>void }) {
   const [input, setInput] = useState("");
+  const [panelWidth, setPanelWidth] = useState(296);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ startX: number; startW: number } | null>(null);
   useEffect(() => { if(scrollRef.current) scrollRef.current.scrollTop=scrollRef.current.scrollHeight; }, [messages, loading]);
   function handleSubmit(e: FormEvent) { e.preventDefault(); if(!input.trim()||loading) return; onSend(input.trim()); setInput(""); }
+  function onMouseDown(e: React.MouseEvent) {
+    e.preventDefault();
+    dragRef.current = { startX: e.clientX, startW: panelWidth };
+    function onMove(ev: MouseEvent) {
+      if (!dragRef.current) return;
+      const delta = dragRef.current.startX - ev.clientX;
+      setPanelWidth(Math.max(220, Math.min(520, dragRef.current.startW + delta)));
+    }
+    function onUp() { dragRef.current = null; window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); }
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }
   return (
-    <div style={{width:296,borderLeft:`1px solid ${C.border}`,display:"flex",flexDirection:"column",flexShrink:0,height:"100%",overflow:"hidden"}}>
+    <div style={{width:panelWidth,borderLeft:`1px solid ${C.border}`,display:"flex",flexDirection:"column",flexShrink:0,height:"100%",overflow:"hidden",position:"relative"}}>
+      {/* Drag handle */}
+      <div onMouseDown={onMouseDown} style={{position:"absolute",left:0,top:0,bottom:0,width:4,cursor:"col-resize",zIndex:10,background:"transparent"}} onMouseEnter={e=>(e.currentTarget.style.background="rgba(87,70,232,0.2)")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")}/>
       <div style={{padding:"13px 15px 11px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
-        <span style={{fontSize:13,fontWeight:500,color:"rgba(255,255,255,0.65)"}}>Research</span>
+        <span style={{fontSize:13,fontWeight:500,color:"rgba(0,0,0,0.65)"}}>Research</span>
         <span style={{fontSize:10,background:C.purpleBg,color:C.purpleLight,border:`1px solid ${C.purpleBorder}`,padding:"2px 7px",borderRadius:10}}>{messages.filter(m=>m.role==="ai").length} queries</span>
       </div>
       <div ref={scrollRef} style={{flex:1,overflowY:"auto",padding:"13px",display:"flex",flexDirection:"column",gap:9}}>
         {messages.map((m,i)=>(
           <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start"}}>
-            <div style={{maxWidth:"88%",fontSize:12,lineHeight:1.65,padding:"8px 10px",borderRadius:m.role==="user"?"8px 8px 2px 8px":"8px 8px 8px 2px",background:m.role==="user"?"rgba(100,86,230,0.2)":"rgba(255,255,255,0.04)",border:`1px solid ${m.role==="user"?"rgba(100,86,230,0.3)":C.border}`,color:m.role==="user"?"rgba(200,190,255,0.9)":"rgba(255,255,255,0.6)"}}>
-              <div dangerouslySetInnerHTML={{__html:m.text.replace(/\*\*(.*?)\*\*/g,'<strong style="color:rgba(255,255,255,0.88)">$1</strong>').replace(/\n\n/g,"<br/><br/>").replace(/\n(\d+\.)/g,"<br/>$1")}}/>
-              {m.cites&&m.cites.length>0&&<div style={{display:"flex",gap:4,marginTop:7,flexWrap:"wrap"}}>{m.cites.map(c=><span key={c.n} style={{fontSize:10,background:C.purpleBg,color:"rgba(170,160,255,0.85)",borderRadius:3,padding:"2px 6px"}}>[{c.n}] {c.label}</span>)}</div>}
+            <div style={{maxWidth:"88%",fontSize:12,lineHeight:1.65,padding:"8px 10px",borderRadius:m.role==="user"?"8px 8px 2px 8px":"8px 8px 8px 2px",background:m.role==="user"?"rgba(87,70,232,0.15)":"rgba(0,0,0,0.04)",border:`1px solid ${m.role==="user"?"rgba(87,70,232,0.25)":C.border}`,color:m.role==="user"?"#5746E8":"rgba(0,0,0,0.6)"}}>
+              <div dangerouslySetInnerHTML={{__html:m.text.replace(/\*\*(.*?)\*\*/g,'<strong style="color:rgba(0,0,0,0.85)">$1</strong>').replace(/\n\n/g,"<br/><br/>").replace(/\n(\d+\.)/g,"<br/>$1")}}/>
+              {m.cites&&m.cites.length>0&&<div style={{display:"flex",gap:4,marginTop:7,flexWrap:"wrap"}}>{m.cites.map(c=><span key={c.n} style={{fontSize:10,background:C.purpleBg,color:"#5746E8",borderRadius:3,padding:"2px 6px"}}>[{c.n}] {c.label}</span>)}</div>}
               {m.insertReq&&<button onClick={()=>onInsert(m.insertReq!)} style={{marginTop:7,fontSize:11,color:C.purpleLight,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",padding:0,display:"block"}}>Insert into PRD →</button>}
             </div>
           </div>
         ))}
-        {loading&&<div style={{display:"flex"}}><div style={{padding:"10px 12px",background:"rgba(255,255,255,0.04)",border:`1px solid ${C.border}`,borderRadius:"8px 8px 8px 2px",display:"flex",gap:5,alignItems:"center"}}>{[0,1,2].map(i=><div key={i} style={{width:5,height:5,borderRadius:"50%",background:C.purpleLight,animation:`vpulse 1.2s ease-in-out ${i*0.2}s infinite`}}/>)}</div></div>}
+        {loading&&<div style={{display:"flex"}}><div style={{padding:"10px 12px",background:"rgba(0,0,0,0.04)",border:`1px solid ${C.border}`,borderRadius:"8px 8px 8px 2px",display:"flex",gap:5,alignItems:"center"}}>{[0,1,2].map(i=><div key={i} style={{width:5,height:5,borderRadius:"50%",background:C.purpleLight,animation:`vpulse 1.2s ease-in-out ${i*0.2}s infinite`}}/>)}</div></div>}
       </div>
       <div style={{padding:"10px 11px",borderTop:`1px solid ${C.border}`,flexShrink:0}}>
         <form onSubmit={handleSubmit} style={{display:"flex",gap:6}}>
-          <input value={input} onChange={e=>setInput(e.target.value)} placeholder="Ask anything..." style={{flex:1,padding:"7px 10px",fontSize:12,color:C.text,background:"rgba(255,255,255,0.05)",border:`1px solid ${C.border}`,borderRadius:7,fontFamily:"inherit"}} onFocus={e=>e.currentTarget.style.borderColor="rgba(100,86,230,0.45)"} onBlur={e=>e.currentTarget.style.borderColor=C.border}/>
+          <input value={input} onChange={e=>setInput(e.target.value)} placeholder="Ask anything..." style={{flex:1,padding:"7px 10px",fontSize:12,color:C.text,background:"rgba(0,0,0,0.05)",border:`1px solid ${C.border}`,borderRadius:7,fontFamily:"inherit"}} onFocus={e=>e.currentTarget.style.borderColor="rgba(100,86,230,0.45)"} onBlur={e=>e.currentTarget.style.borderColor=C.border}/>
           <button type="submit" disabled={loading} style={{padding:"7px 13px",background:C.purple,border:"none",borderRadius:7,color:"#fff",cursor:loading?"not-allowed":"pointer",fontSize:12,fontFamily:"inherit",opacity:loading?0.5:1}}>→</button>
         </form>
       </div>
@@ -137,7 +153,7 @@ function ConflictModal({ req, onClose }: { req: Req; onClose: () => void }) {
         </div>
         <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 13px",marginBottom:16}}>
           <span style={{fontSize:11,fontWeight:700,color:C.purpleLight,display:"block",marginBottom:4}}>{req.id}</span>
-          <span style={{fontSize:13,color:"rgba(255,255,255,0.75)",lineHeight:1.5}}>{req.title}</span>
+          <span style={{fontSize:13,color:"rgba(0,0,0,0.75)",lineHeight:1.5}}>{req.title}</span>
         </div>
         <div style={{background:"rgba(245,180,69,0.06)",border:"1px solid rgba(245,180,69,0.18)",borderRadius:8,padding:"12px 14px",marginBottom:18}}>
           <p style={{fontSize:12,color:"rgba(245,180,69,0.85)",lineHeight:1.65}}>{req.conflictNote}</p>
@@ -199,18 +215,18 @@ function ExportModal({ onClose, ticketCount }: { onClose: () => void; ticketCoun
         <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"14px 18px",marginBottom:12}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{width:28,height:28,borderRadius:6,background:"rgba(255,255,255,0.08)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>MD</div>
+              <div style={{width:28,height:28,borderRadius:6,background:"rgba(0,0,0,0.08)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>MD</div>
               <div>
                 <div style={{fontSize:13,fontWeight:600,color:C.text}}>Copy as Markdown</div>
                 <div style={{fontSize:11,color:C.textDim}}>All tickets with requirements + acceptance criteria</div>
               </div>
             </div>
-            <button onClick={()=>{setMdCopied(true);setTimeout(()=>setMdCopied(false),2000);}} style={{fontSize:12,padding:"6px 14px",background:mdCopied?"rgba(62,207,142,0.15)":"rgba(255,255,255,0.07)",border:`1px solid ${mdCopied?"rgba(62,207,142,0.3)":C.border}`,borderRadius:7,color:mdCopied?C.green:C.textMuted,cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}>{mdCopied?"✓ Copied!":"Copy →"}</button>
+            <button onClick={()=>{setMdCopied(true);setTimeout(()=>setMdCopied(false),2000);}} style={{fontSize:12,padding:"6px 14px",background:mdCopied?"rgba(62,207,142,0.15)":"rgba(0,0,0,0.07)",border:`1px solid ${mdCopied?"rgba(62,207,142,0.3)":C.border}`,borderRadius:7,color:mdCopied?C.green:C.textMuted,cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}>{mdCopied?"✓ Copied!":"Copy →"}</button>
           </div>
         </div>
 
         {/* Jira (V1) */}
-        <div style={{background:"rgba(255,255,255,0.02)",border:`1px dashed ${C.border}`,borderRadius:12,padding:"14px 18px",marginBottom:22,opacity:0.6}}>
+        <div style={{background:"rgba(0,0,0,0.02)",border:`1px dashed ${C.border}`,borderRadius:12,padding:"14px 18px",marginBottom:22,opacity:0.6}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             <div style={{width:28,height:28,borderRadius:6,background:"rgba(0,101,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"#4C9AFF",fontWeight:700}}>J</div>
             <div>
@@ -259,7 +275,7 @@ function PRDDocumentView({ insertedReqs, flashReqId, onConflictClick }: { insert
 
       <H2>Problem Statement</H2>
       <P>Product managers and engineers have patched the checkout flow incrementally over 3 years, resulting in a fragmented experience that doesn't reflect current user expectations. The current flow requires users to: (1) create an account, (2) verify their email, (3) fill in shipping, (4) fill in billing separately, and (5) confirm. Steps 1–2 alone cause 24% of drop-offs (Baymard, 2024). No express payment options exist despite 72% of checkout sessions starting on mobile.</P>
-      <div style={{background:"rgba(245,180,69,0.06)",border:"1px solid rgba(245,180,69,0.15)",borderRadius:8,padding:"12px 16px",marginBottom:16}}>
+      <div style={{background:"rgba(245,180,69,0.06)",border:"1px solid rgba(180,83,9,0.1)",borderRadius:8,padding:"12px 16px",marginBottom:16}}>
         <p style={{fontSize:13,color:"rgba(245,180,69,0.85)",lineHeight:1.65}}><strong>⚠ 2 requirement conflicts detected.</strong> R4 (autofill shipping) conflicts with R1 (guest checkout). Click the conflict badge on any requirement to see the analysis and suggested resolution.</p>
       </div>
 
@@ -297,7 +313,7 @@ function PRDDocumentView({ insertedReqs, flashReqId, onConflictClick }: { insert
         {REQS.map(req=>{
           const flash=flashReqId===req.id; const cited=insertedReqs.includes(req.id);
           return (
-            <div key={req.id} style={{border:`1px solid ${req.conflict?"rgba(245,180,69,0.28)":flash?"rgba(100,86,230,0.55)":C.border}`,borderRadius:10,padding:"14px 16px",background:flash?"rgba(100,86,230,0.08)":req.conflict?"rgba(245,180,69,0.03)":C.surface,transition:"all 0.35s",cursor:req.conflict?"pointer":"default"}} onClick={req.conflict?()=>onConflictClick(req):undefined}>
+            <div key={req.id} style={{border:`1px solid ${req.conflict?"rgba(245,180,69,0.28)":flash?"rgba(100,86,230,0.55)":C.border}`,borderRadius:10,padding:"14px 16px",background:flash?"rgba(87,70,232,0.06)":req.conflict?"rgba(245,180,69,0.03)":C.surface,transition:"all 0.35s",cursor:req.conflict?"pointer":"default"}} onClick={req.conflict?()=>onConflictClick(req):undefined}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
                 <span style={{fontSize:11,fontWeight:700,color:C.purpleLight}}>{req.id}</span>
                 <span style={{fontSize:10,fontWeight:600,padding:"2px 6px",borderRadius:4,background:`${pc(req.priority)}18`,color:pc(req.priority)}}>{req.priority}</span>
@@ -306,7 +322,7 @@ function PRDDocumentView({ insertedReqs, flashReqId, onConflictClick }: { insert
                 {cited&&<span style={{fontSize:10,padding:"2px 7px",background:C.purpleBg,color:C.purpleLight,borderRadius:4,border:`1px solid ${C.purpleBorder}`}}>cited</span>}
                 {req.conflict&&<span style={{fontSize:10,padding:"2px 7px",background:"rgba(245,180,69,0.14)",color:C.yellow,borderRadius:4,cursor:"pointer"}}>Conflict ⚠ — click to resolve</span>}
               </div>
-              <p style={{fontSize:13,color:"rgba(255,255,255,0.78)",lineHeight:1.55,margin:0}}>{req.title}</p>
+              <p style={{fontSize:13,color:"rgba(0,0,0,0.75)",lineHeight:1.55,margin:0}}>{req.title}</p>
             </div>
           );
         })}
@@ -329,7 +345,7 @@ function PRDDocumentView({ insertedReqs, flashReqId, onConflictClick }: { insert
           ].map(r=>(
             <>
               <span key={r.m+"-m"} style={{fontSize:13,color:C.textMuted}}>{r.m}</span>
-              <span key={r.m+"-b"} style={{fontSize:13,color:"rgba(255,255,255,0.3)",textAlign:"right"}}>{r.b}</span>
+              <span key={r.m+"-b"} style={{fontSize:13,color:"rgba(0,0,0,0.3)",textAlign:"right"}}>{r.b}</span>
               <span key={r.m+"-t"} style={{fontSize:13,color:C.green,fontWeight:500,textAlign:"right"}}>{r.t}</span>
               <span key={r.m+"-tl"} style={{fontSize:11,color:C.textDim}}>{r.tl}</span>
             </>
@@ -382,9 +398,9 @@ function PRDEditor({ insertedReqs, flashReqId, onConflictClick, onGenerateTicket
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <h1 style={{fontSize:18,fontWeight:600,color:C.text,letterSpacing:"-0.3px"}}>Checkout Redesign <span style={{fontSize:12,fontWeight:400,color:C.textDim,letterSpacing:"0"}}>· PRD</span></h1>
           {/* View toggle */}
-          <div style={{display:"flex",background:"rgba(255,255,255,0.04)",border:`1px solid ${C.border}`,borderRadius:7,overflow:"hidden"}}>
+          <div style={{display:"flex",background:"rgba(0,0,0,0.04)",border:`1px solid ${C.border}`,borderRadius:7,overflow:"hidden"}}>
             {(["document","structured"] as const).map(v=>(
-              <button key={v} onClick={()=>setView(v)} style={{fontSize:11,padding:"4px 11px",background:view===v?"rgba(100,86,230,0.2)":"transparent",border:"none",color:view===v?C.purpleLight:C.textDim,cursor:"pointer",fontFamily:"inherit",fontWeight:view===v?500:400,borderRight:v==="document"?`1px solid ${C.border}`:"none",transition:"all 0.15s"}}>
+              <button key={v} onClick={()=>setView(v)} style={{fontSize:11,padding:"4px 11px",background:view===v?"rgba(87,70,232,0.15)":"transparent",border:"none",color:view===v?C.purpleLight:C.textDim,cursor:"pointer",fontFamily:"inherit",fontWeight:view===v?500:400,borderRight:v==="document"?`1px solid ${C.border}`:"none",transition:"all 0.15s"}}>
                 {v==="document"?"📄 Document":"⚡ Structured"}
               </button>
             ))}
@@ -392,7 +408,7 @@ function PRDEditor({ insertedReqs, flashReqId, onConflictClick, onGenerateTicket
         </div>
         <div style={{display:"flex",gap:8,flexShrink:0}}>
           {ticketsState==="idle"&&<button onClick={onGenerateTickets} style={{fontSize:12,padding:"6px 14px",background:C.purple,border:"none",borderRadius:7,color:"#fff",cursor:"pointer",fontFamily:"inherit",fontWeight:500}} onMouseEnter={e=>(e.currentTarget as HTMLButtonElement).style.background=C.purpleHover} onMouseLeave={e=>(e.currentTarget as HTMLButtonElement).style.background=C.purple}>Generate Tickets →</button>}
-          {ticketsState==="generating"&&<button disabled style={{fontSize:12,padding:"6px 14px",background:"rgba(87,70,232,0.4)",border:"none",borderRadius:7,color:"rgba(255,255,255,0.45)",cursor:"not-allowed",fontFamily:"inherit"}}>Generating...</button>}
+          {ticketsState==="generating"&&<button disabled style={{fontSize:12,padding:"6px 14px",background:"rgba(87,70,232,0.4)",border:"none",borderRadius:7,color:"rgba(0,0,0,0.45)",cursor:"not-allowed",fontFamily:"inherit"}}>Generating...</button>}
           {ticketsState==="done"&&<button style={{fontSize:12,padding:"6px 14px",background:"rgba(62,207,142,0.12)",border:"1px solid rgba(62,207,142,0.25)",borderRadius:7,color:"rgba(62,207,142,0.9)",cursor:"pointer",fontFamily:"inherit"}}>✓ Tickets ready</button>}
           <button onClick={onExport} style={{fontSize:12,padding:"6px 11px",background:"transparent",border:`1px solid ${C.border}`,borderRadius:7,color:C.textMuted,cursor:"pointer",fontFamily:"inherit"}} onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.borderColor=C.purpleBorder;(e.currentTarget as HTMLButtonElement).style.color=C.purpleLight;}} onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.borderColor=C.border;(e.currentTarget as HTMLButtonElement).style.color=C.textMuted;}}>Export ↗</button>
         </div>
@@ -404,27 +420,27 @@ function PRDEditor({ insertedReqs, flashReqId, onConflictClick, onGenerateTicket
       {/* Structured view */}
       {view==="structured"&&(
         <div>
-          <div style={{background:"rgba(245,180,69,0.07)",border:"1px solid rgba(245,180,69,0.2)",borderRadius:9,padding:"10px 14px",marginBottom:18,display:"flex",alignItems:"center",gap:10}}>
+          <div style={{background:"rgba(245,180,69,0.07)",border:"1px solid rgba(180,83,9,0.15)",borderRadius:9,padding:"10px 14px",marginBottom:18,display:"flex",alignItems:"center",gap:10}}>
             <span style={{fontSize:14,flexShrink:0}}>⚠</span>
-            <span style={{fontSize:12,color:"#F5B445",fontWeight:500}}>2 requirement conflicts detected</span>
-            <span style={{fontSize:12,color:"rgba(245,180,69,0.55)",marginLeft:4}}>— Click any conflict badge to see the analysis</span>
+            <span style={{fontSize:12,color:"#b45309",fontWeight:500}}>2 requirement conflicts detected</span>
+            <span style={{fontSize:12,color:"rgba(180,83,9,0.5)",marginLeft:4}}>— Click any conflict badge to see the analysis</span>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-            <span style={{fontSize:12,fontWeight:500,color:"rgba(255,255,255,0.55)"}}>Requirements</span>
+            <span style={{fontSize:12,fontWeight:500,color:"rgba(0,0,0,0.55)"}}>Requirements</span>
             <span style={{fontSize:11,color:C.textDim}}>({REQS.length})</span>
             <div style={{flex:1}}/>
             <div style={{display:"flex",gap:3}}>
-              {["All","P0","P1","P2"].map(f=><button key={f} onClick={()=>setFilter(f)} style={{fontSize:11,padding:"3px 8px",background:filter===f?"rgba(255,255,255,0.09)":"transparent",border:`1px solid ${filter===f?C.border:"transparent"}`,borderRadius:5,color:filter===f?C.text:C.textDim,cursor:"pointer",fontFamily:"inherit"}}>{f}</button>)}
+              {["All","P0","P1","P2"].map(f=><button key={f} onClick={()=>setFilter(f)} style={{fontSize:11,padding:"3px 8px",background:filter===f?"rgba(0,0,0,0.09)":"transparent",border:`1px solid ${filter===f?C.border:"transparent"}`,borderRadius:5,color:filter===f?C.text:C.textDim,cursor:"pointer",fontFamily:"inherit"}}>{f}</button>)}
             </div>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:6}}>
             {filtered.map(req=>{
               const flash=flashReqId===req.id; const cited=insertedReqs.includes(req.id);
               return (
-                <div key={req.id} style={{border:`1px solid ${req.conflict?"rgba(245,180,69,0.28)":flash?"rgba(100,86,230,0.55)":C.border}`,borderRadius:8,padding:"10px 13px",background:flash?"rgba(100,86,230,0.1)":req.conflict?"rgba(245,180,69,0.04)":C.surface,display:"flex",alignItems:"center",gap:10,transition:"all 0.35s",cursor:req.conflict?"pointer":"default"}} onClick={req.conflict?()=>onConflictClick(req):undefined}>
+                <div key={req.id} style={{border:`1px solid ${req.conflict?"rgba(245,180,69,0.28)":flash?"rgba(100,86,230,0.55)":C.border}`,borderRadius:8,padding:"10px 13px",background:flash?"rgba(100,86,230,0.1)":req.conflict?"rgba(180,83,9,0.04)":C.surface,display:"flex",alignItems:"center",gap:10,transition:"all 0.35s",cursor:req.conflict?"pointer":"default"}} onClick={req.conflict?()=>onConflictClick(req):undefined}>
                   <span style={{fontSize:11,fontWeight:700,color:C.purpleLight,width:24,flexShrink:0}}>{req.id}</span>
                   <span style={{fontSize:9,fontWeight:600,padding:"2px 5px",borderRadius:3,background:`${pc(req.priority)}18`,color:pc(req.priority),flexShrink:0}}>{req.priority}</span>
-                  <span style={{fontSize:12,color:"rgba(255,255,255,0.78)",flex:1,lineHeight:1.45}}>{req.title}</span>
+                  <span style={{fontSize:12,color:"rgba(0,0,0,0.75)",flex:1,lineHeight:1.45}}>{req.title}</span>
                   {cited&&<span style={{fontSize:10,padding:"2px 7px",background:C.purpleBg,color:C.purpleLight,borderRadius:3,flexShrink:0,border:`1px solid ${C.purpleBorder}`}}>cited</span>}
                   {req.conflict&&<span style={{fontSize:10,padding:"2px 7px",background:"rgba(245,180,69,0.14)",color:C.yellow,borderRadius:3,flexShrink:0,whiteSpace:"nowrap"}}>Conflict ⚠</span>}
                   <span style={{fontSize:11,color:C.textDim,flexShrink:0}}>{req.effort} · {req.points}pt{req.points!==1?"s":""}</span>
@@ -439,7 +455,7 @@ function PRDEditor({ insertedReqs, flashReqId, onConflictClick, onGenerateTicket
                 {[{l:"Checkout completion",cur:"65.8%",tgt:"78%+"},{l:"Payment drop-off",cur:"34.2%",tgt:"<22%"},{l:"Avg checkout time",cur:"4m 20s",tgt:"<2 min"}].map(m=>(
                   <div key={m.l} style={{display:"flex",alignItems:"center",gap:12}}>
                     <span style={{fontSize:12,color:C.textMuted,flex:1}}>{m.l}</span>
-                    <span style={{fontSize:12,color:"rgba(255,255,255,0.3)",minWidth:48}}>{m.cur}</span>
+                    <span style={{fontSize:12,color:"rgba(0,0,0,0.3)",minWidth:48}}>{m.cur}</span>
                     <span style={{fontSize:11,color:C.textDim}}>→</span>
                     <span style={{fontSize:12,color:C.green,minWidth:60,textAlign:"right"}}>{m.tgt}</span>
                   </div>
@@ -459,7 +475,7 @@ function Sec({ title, id, expanded, onToggle, children }: { title:string; id:str
     <div style={{marginBottom:12}}>
       <button onClick={()=>onToggle(id)} style={{width:"100%",background:"none",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:8,padding:"9px 0",fontFamily:"inherit",textAlign:"left"}}>
         <span style={{fontSize:10,color:C.textDim,display:"inline-block",transform:open?"rotate(90deg)":"rotate(0deg)",transition:"transform 0.18s"}}>▶</span>
-        <span style={{fontSize:13,fontWeight:500,color:"rgba(255,255,255,0.6)"}}>{title}</span>
+        <span style={{fontSize:13,fontWeight:500,color:"rgba(0,0,0,0.6)"}}>{title}</span>
       </button>
       {open&&<div style={{padding:"12px 15px",background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,marginTop:3}}>{children}</div>}
     </div>
@@ -476,11 +492,11 @@ function TicketsGeneratingOverlay() {
       <div style={{width:320}}>
         {steps.map((s,i)=>(
           <div key={s} style={{display:"flex",gap:12,alignItems:"center",marginBottom:13,opacity:i<=step?1:0.18,transition:"opacity 0.3s"}}>
-            <div style={{width:18,height:18,borderRadius:"50%",flexShrink:0,background:i<step?C.green:i===step?C.purple:"rgba(255,255,255,0.08)",display:"flex",alignItems:"center",justifyContent:"center",transition:"background 0.3s"}}>
+            <div style={{width:18,height:18,borderRadius:"50%",flexShrink:0,background:i<step?C.green:i===step?C.purple:"rgba(0,0,0,0.08)",display:"flex",alignItems:"center",justifyContent:"center",transition:"background 0.3s"}}>
               {i<step&&<svg width="9" height="9" viewBox="0 0 9 9"><path d="M1.5 4.5L3.5 6.5L7.5 2.5" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               {i===step&&<div style={{width:5,height:5,borderRadius:"50%",background:"white"}}/>}
             </div>
-            <span style={{fontSize:13,color:i<=step?"rgba(255,255,255,0.8)":C.textDim}}>{s}</span>
+            <span style={{fontSize:13,color:i<=step?"rgba(0,0,0,0.8)":C.textDim}}>{s}</span>
           </div>
         ))}
       </div>
@@ -492,14 +508,14 @@ function TicketsGeneratingOverlay() {
 function TicketCard({ ticket, onClick, selected }: { ticket:Ticket; onClick:()=>void; selected:boolean }) {
   const req=REQS.find(r=>r.id===ticket.req);
   return (
-    <div onClick={onClick} style={{background:selected?"rgba(100,86,230,0.1)":C.surface,border:`1px solid ${selected?"rgba(100,86,230,0.4)":C.border}`,borderRadius:8,padding:"10px 12px",cursor:"pointer",transition:"all 0.15s"}} onMouseEnter={e=>{if(!selected){(e.currentTarget as HTMLDivElement).style.borderColor="rgba(100,86,230,0.3)";(e.currentTarget as HTMLDivElement).style.background="rgba(100,86,230,0.05)";}}} onMouseLeave={e=>{if(!selected){(e.currentTarget as HTMLDivElement).style.borderColor=C.border;(e.currentTarget as HTMLDivElement).style.background=C.surface;}}}>
+    <div onClick={onClick} style={{background:selected?"rgba(100,86,230,0.1)":C.surface,border:`1px solid ${selected?"rgba(87,70,232,0.3)":C.border}`,borderRadius:8,padding:"10px 12px",cursor:"pointer",transition:"all 0.15s"}} onMouseEnter={e=>{if(!selected){(e.currentTarget as HTMLDivElement).style.borderColor="rgba(87,70,232,0.25)";(e.currentTarget as HTMLDivElement).style.background="rgba(100,86,230,0.05)";}}} onMouseLeave={e=>{if(!selected){(e.currentTarget as HTMLDivElement).style.borderColor=C.border;(e.currentTarget as HTMLDivElement).style.background=C.surface;}}}>
       <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:5}}>
         <span style={{fontSize:10,fontWeight:700,color:C.purpleLight}}>{ticket.id}</span>
         {ticket.deps.length>0&&<span style={{fontSize:9,color:C.textDim}}>↳ {ticket.deps.join(", ")}</span>}
         <div style={{flex:1}}/>
         {req&&<span style={{fontSize:9,padding:"2px 5px",background:`${pc(req.priority)}18`,color:pc(req.priority),borderRadius:3}}>{req.priority}</span>}
       </div>
-      <div style={{fontSize:12,color:"rgba(255,255,255,0.82)",lineHeight:1.45,marginBottom:7}}>{ticket.title}</div>
+      <div style={{fontSize:12,color:"rgba(0,0,0,0.8)",lineHeight:1.45,marginBottom:7}}>{ticket.title}</div>
       <div style={{display:"flex",gap:6}}><span style={{fontSize:10,color:C.textDim}}>{ticket.req}</span><span style={{fontSize:10,color:C.textDim}}>·</span><span style={{fontSize:10,color:C.textDim}}>{ticket.effort} · {ticket.pts}pt{ticket.pts!==1?"s":""}</span></div>
     </div>
   );
@@ -521,8 +537,8 @@ function TicketDetail({ ticket, onClose }: { ticket:Ticket; onClose:()=>void }) 
         <h3 style={{fontSize:14,fontWeight:600,color:C.text,lineHeight:1.45,marginBottom:13}}>{ticket.title}</h3>
         <div style={{display:"flex",gap:6,marginBottom:18,flexWrap:"wrap"}}>
           {req&&<span style={{fontSize:10,padding:"3px 7px",background:`${pc(req.priority)}18`,color:pc(req.priority),borderRadius:4}}>{req.priority}</span>}
-          <span style={{fontSize:10,padding:"3px 7px",background:"rgba(255,255,255,0.06)",color:C.textMuted,borderRadius:4}}>{ticket.effort} effort</span>
-          <span style={{fontSize:10,padding:"3px 7px",background:"rgba(255,255,255,0.06)",color:C.textMuted,borderRadius:4}}>{ticket.pts}pt{ticket.pts!==1?"s":""}</span>
+          <span style={{fontSize:10,padding:"3px 7px",background:"rgba(0,0,0,0.06)",color:C.textMuted,borderRadius:4}}>{ticket.effort} effort</span>
+          <span style={{fontSize:10,padding:"3px 7px",background:"rgba(0,0,0,0.06)",color:C.textMuted,borderRadius:4}}>{ticket.pts}pt{ticket.pts!==1?"s":""}</span>
           <span style={{fontSize:10,padding:"3px 7px",background:C.purpleBg,color:C.purpleLight,borderRadius:4,border:`1px solid ${C.purpleBorder}`}}>{ticket.req}</span>
         </div>
         <Lbl>Description</Lbl>
@@ -535,7 +551,7 @@ function TicketDetail({ ticket, onClose }: { ticket:Ticket; onClose:()=>void }) 
             <div><span style={{fontSize:12,fontWeight:600,color:C.purpleLight}}>Agent Prompt</span><span style={{fontSize:11,color:C.textDim,marginLeft:8}}>Paste into Cursor / Claude Code</span></div>
             <button onClick={()=>{navigator.clipboard.writeText(prompt).catch(()=>{});setCopied(true);setTimeout(()=>setCopied(false),2000);}} style={{fontSize:11,padding:"4px 10px",background:copied?"rgba(62,207,142,0.15)":C.purpleBg,border:`1px solid ${copied?"rgba(62,207,142,0.3)":C.purpleBorder}`,borderRadius:6,color:copied?C.green:C.purpleLight,cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}>{copied?"✓ Copied!":"Copy →"}</button>
           </div>
-          <div style={{background:"rgba(0,0,0,0.35)",border:`1px solid ${C.border}`,borderRadius:7,padding:"11px 13px",fontSize:11,color:"rgba(255,255,255,0.42)",fontFamily:"monospace",lineHeight:1.75,whiteSpace:"pre-wrap",maxHeight:240,overflowY:"auto"}}>{prompt}</div>
+          <div style={{background:"#f0f0f0",border:`1px solid ${C.border}`,borderRadius:7,padding:"11px 13px",fontSize:11,color:"rgba(0,0,0,0.6)",fontFamily:"monospace",lineHeight:1.75,whiteSpace:"pre-wrap",maxHeight:240,overflowY:"auto"}}>{prompt}</div>
         </div>
       </div>
     </div>
@@ -553,8 +569,8 @@ function TicketsBoard({ onTicketClick, selectedId }: { onTicketClick:(t:Ticket)=
       {WAVES.map(wave=>(
         <div key={wave.n} style={{minWidth:264,width:264,flexShrink:0}}>
           <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:11}}>
-            <span style={{fontSize:12,fontWeight:500,color:"rgba(255,255,255,0.5)"}}>{wave.label}</span>
-            <span style={{fontSize:10,background:"rgba(255,255,255,0.06)",color:C.textDim,borderRadius:10,padding:"1px 7px"}}>{wave.tickets.length}</span>
+            <span style={{fontSize:12,fontWeight:500,color:"rgba(0,0,0,0.5)"}}>{wave.label}</span>
+            <span style={{fontSize:10,background:"rgba(0,0,0,0.06)",color:C.textDim,borderRadius:10,padding:"1px 7px"}}>{wave.tickets.length}</span>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:7}}>
             {wave.tickets.map(t=><TicketCard key={t.id} ticket={t} onClick={()=>onTicketClick(t)} selected={selectedId===t.id}/>)}
@@ -575,7 +591,7 @@ function ResearchView({ messages, onSend, loading, onInsert }: { messages:Messag
   return (
     <div style={{flex:1,display:"flex",flexDirection:"column",height:"100%",overflow:"hidden"}}>
       <div style={{padding:"15px 26px 12px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",gap:12,flexShrink:0}}>
-        <span style={{fontSize:14,fontWeight:500,color:"rgba(255,255,255,0.75)"}}>Research</span>
+        <span style={{fontSize:14,fontWeight:500,color:"rgba(0,0,0,0.75)"}}>Research</span>
         <span style={{fontSize:12,color:C.textDim}}>AI searches the web + your product context simultaneously</span>
         <div style={{flex:1}}/>
         <span style={{fontSize:11,background:C.purpleBg,color:C.purpleLight,border:`1px solid ${C.purpleBorder}`,padding:"3px 9px",borderRadius:10}}>{messages.filter(m=>m.role==="ai").length} queries</span>
@@ -593,18 +609,18 @@ function ResearchView({ messages, onSend, loading, onInsert }: { messages:Messag
         )}
         {messages.map((m,i)=>(
           <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start"}}>
-            <div style={{maxWidth:m.role==="user"?420:660,fontSize:13,lineHeight:1.72,padding:"11px 15px",borderRadius:m.role==="user"?"10px 10px 2px 10px":"10px 10px 10px 2px",background:m.role==="user"?"rgba(100,86,230,0.2)":"rgba(255,255,255,0.04)",border:`1px solid ${m.role==="user"?"rgba(100,86,230,0.3)":C.border}`,color:m.role==="user"?"rgba(200,190,255,0.9)":"rgba(255,255,255,0.65)"}}>
-              <div dangerouslySetInnerHTML={{__html:m.text.replace(/\*\*(.*?)\*\*/g,'<strong style="color:rgba(255,255,255,0.9)">$1</strong>').replace(/\n\n/g,"<br/><br/>").replace(/\n(\d+\.)/g,"<br/>$1")}}/>
-              {m.cites&&m.cites.length>0&&<div style={{display:"flex",gap:6,marginTop:10,flexWrap:"wrap"}}>{m.cites.map(c=><span key={c.n} style={{fontSize:11,background:C.purpleBg,color:"rgba(170,160,255,0.85)",borderRadius:4,padding:"3px 8px",border:`1px solid ${C.purpleBorder}`}}>[{c.n}] {c.label}</span>)}</div>}
+            <div style={{maxWidth:m.role==="user"?420:660,fontSize:13,lineHeight:1.72,padding:"11px 15px",borderRadius:m.role==="user"?"10px 10px 2px 10px":"10px 10px 10px 2px",background:m.role==="user"?"rgba(87,70,232,0.15)":"rgba(0,0,0,0.04)",border:`1px solid ${m.role==="user"?"rgba(87,70,232,0.25)":C.border}`,color:m.role==="user"?"#5746E8":"rgba(0,0,0,0.65)"}}>
+              <div dangerouslySetInnerHTML={{__html:m.text.replace(/\*\*(.*?)\*\*/g,'<strong style="color:rgba(0,0,0,0.9)">$1</strong>').replace(/\n\n/g,"<br/><br/>").replace(/\n(\d+\.)/g,"<br/>$1")}}/>
+              {m.cites&&m.cites.length>0&&<div style={{display:"flex",gap:6,marginTop:10,flexWrap:"wrap"}}>{m.cites.map(c=><span key={c.n} style={{fontSize:11,background:C.purpleBg,color:"#5746E8",borderRadius:4,padding:"3px 8px",border:`1px solid ${C.purpleBorder}`}}>[{c.n}] {c.label}</span>)}</div>}
               {m.insertReq&&<button onClick={()=>onInsert(m.insertReq!)} style={{marginTop:9,fontSize:12,color:C.purpleLight,background:"none",border:"none",cursor:"pointer",fontFamily:"inherit",padding:0,display:"block"}}>Insert into PRD →</button>}
             </div>
           </div>
         ))}
-        {loading&&<div style={{display:"flex"}}><div style={{padding:"12px 15px",background:"rgba(255,255,255,0.04)",border:`1px solid ${C.border}`,borderRadius:"10px 10px 10px 2px",display:"flex",gap:5,alignItems:"center"}}>{[0,1,2].map(i=><div key={i} style={{width:6,height:6,borderRadius:"50%",background:C.purpleLight,animation:`vpulse 1.2s ease-in-out ${i*0.2}s infinite`}}/>)}</div></div>}
+        {loading&&<div style={{display:"flex"}}><div style={{padding:"12px 15px",background:"rgba(0,0,0,0.04)",border:`1px solid ${C.border}`,borderRadius:"10px 10px 10px 2px",display:"flex",gap:5,alignItems:"center"}}>{[0,1,2].map(i=><div key={i} style={{width:6,height:6,borderRadius:"50%",background:C.purpleLight,animation:`vpulse 1.2s ease-in-out ${i*0.2}s infinite`}}/>)}</div></div>}
       </div>
       <div style={{padding:"14px 26px",borderTop:`1px solid ${C.border}`,flexShrink:0}}>
         <form onSubmit={handleSubmit} style={{display:"flex",gap:8}}>
-          <input value={input} onChange={e=>setInput(e.target.value)} placeholder="Ask anything about your PRD — research, gap analysis, conflict detection..." style={{flex:1,padding:"11px 16px",fontSize:13,color:C.text,background:"rgba(255,255,255,0.05)",border:`1px solid ${C.border}`,borderRadius:10,fontFamily:"inherit"}} onFocus={e=>e.currentTarget.style.borderColor="rgba(100,86,230,0.45)"} onBlur={e=>e.currentTarget.style.borderColor=C.border}/>
+          <input value={input} onChange={e=>setInput(e.target.value)} placeholder="Ask anything about your PRD — research, gap analysis, conflict detection..." style={{flex:1,padding:"11px 16px",fontSize:13,color:C.text,background:"rgba(0,0,0,0.05)",border:`1px solid ${C.border}`,borderRadius:10,fontFamily:"inherit"}} onFocus={e=>e.currentTarget.style.borderColor="rgba(100,86,230,0.45)"} onBlur={e=>e.currentTarget.style.borderColor=C.border}/>
           <button type="submit" disabled={loading} style={{padding:"11px 22px",background:C.purple,border:"none",borderRadius:10,color:"#fff",cursor:loading?"not-allowed":"pointer",fontSize:13,fontFamily:"inherit",fontWeight:500,opacity:loading?0.5:1}}>Ask →</button>
         </form>
       </div>
@@ -616,12 +632,12 @@ function ResearchView({ messages, onSend, loading, onInsert }: { messages:Messag
 function IntegrationsView({ linearConnected, onLinearConnect }: { linearConnected: boolean; onLinearConnect: () => void }) {
   const mvp = [
     { id:"linear", name:"Linear", desc:"Push tickets to your Linear board. One-way sync — your engineers never leave Linear.", logo:<div style={{width:28,height:28,borderRadius:6,background:"#5E6AD2",display:"flex",alignItems:"center",justifyContent:"center"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 12L12 3L21 12L12 21L3 12Z" fill="white" opacity="0.9"/></svg></div>, connected:linearConnected, onConnect:onLinearConnect, badge:"MVP" },
-    { id:"url", name:"URL & Doc Import", desc:"Import any URL or document. Web pages, PDFs, Notion exports — all queryable in Research.", logo:<div style={{width:28,height:28,borderRadius:6,background:"rgba(255,255,255,0.08)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🌐</div>, connected:true, onConnect:()=>{}, badge:"MVP" },
+    { id:"url", name:"URL & Doc Import", desc:"Import any URL or document. Web pages, PDFs, Notion exports — all queryable in Research.", logo:<div style={{width:28,height:28,borderRadius:6,background:"rgba(0,0,0,0.08)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🌐</div>, connected:true, onConnect:()=>{}, badge:"MVP" },
     { id:"gsuite", name:"Google Workspace", desc:"Import Docs, Sheets, and Drive files into your product context.", logo:<div style={{width:28,height:28,borderRadius:6,background:"rgba(66,133,244,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>G</div>, connected:false, onConnect:()=>{}, badge:"MVP" },
   ];
   const v1 = [
-    { name:"GitHub", desc:"Index your codebase. Tickets reference actual files + functions.", color:"rgba(255,255,255,0.08)", letter:"</>", badge:"V1" },
-    { name:"Notion", desc:"Import PRDs, decision logs, roadmaps. Query across all pages.", color:"rgba(255,255,255,0.08)", letter:"N", badge:"V1" },
+    { name:"GitHub", desc:"Index your codebase. Tickets reference actual files + functions.", color:"rgba(0,0,0,0.08)", letter:"</>", badge:"V1" },
+    { name:"Notion", desc:"Import PRDs, decision logs, roadmaps. Query across all pages.", color:"rgba(0,0,0,0.08)", letter:"N", badge:"V1" },
     { name:"Figma", desc:"Pull linked screens into Design tab. Conflict detection vs PRD.", color:"rgba(162,89,255,0.15)", letter:"✦", badge:"V1" },
     { name:"Jira", desc:"Two-way sync. Tickets land in Jira. Changes propagate back.", color:"rgba(0,101,255,0.15)", letter:"J", badge:"V1" },
     { name:"Loom / Video", desc:"Paste Loom URL → extract key frames → process like screenshots.", color:"rgba(99,91,255,0.15)", letter:"▶", badge:"V1" },
@@ -630,26 +646,10 @@ function IntegrationsView({ linearConnected, onLinearConnect }: { linearConnecte
 
   return (
     <div style={{flex:1,overflowY:"auto",padding:"28px 32px",height:"100%"}}>
-      {/* Hero banner */}
-      <div style={{background:"rgba(249,115,22,0.08)",border:"1px solid rgba(249,115,22,0.25)",borderRadius:14,padding:"22px 26px",marginBottom:36}}>
-        <div style={{display:"flex",gap:20,alignItems:"flex-start",flexWrap:"wrap"}}>
-          <div style={{flex:1,minWidth:220}}>
-            <div style={{fontSize:11,fontWeight:600,color:"rgba(249,115,22,0.7)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>PM objection</div>
-            <p style={{fontSize:14,color:"rgba(249,115,22,0.85)",fontStyle:"italic",lineHeight:1.6,marginBottom:0}}>"I already have Linear, Notion, Jira — I'm not migrating to another tool."</p>
-          </div>
-          <div style={{width:1,background:"rgba(249,115,22,0.2)",alignSelf:"stretch",flexShrink:0}}/>
-          <div style={{flex:1,minWidth:220}}>
-            <div style={{fontSize:11,fontWeight:600,color:"rgba(62,207,142,0.7)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Answer</div>
-            <p style={{fontSize:16,fontWeight:700,color:C.text,lineHeight:1.5,marginBottom:8}}>You don't migrate. Vantage CONNECTS.</p>
-            <p style={{fontSize:13,color:C.textMuted,lineHeight:1.65}}>Tickets stay in Linear. Docs stay in Notion. Engineers never leave Jira. Vantage is the brain — your tools are the hands.</p>
-          </div>
-        </div>
-      </div>
-
       {/* MVP Connectors */}
       <div style={{marginBottom:32}}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
-          <span style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.7)"}}>MVP Connectors</span>
+          <span style={{fontSize:13,fontWeight:600,color:"rgba(0,0,0,0.7)"}}>MVP Connectors</span>
           <span style={{fontSize:11,background:"rgba(62,207,142,0.12)",color:C.green,border:"1px solid rgba(62,207,142,0.2)",borderRadius:6,padding:"2px 8px"}}>Plug in, don't migrate</span>
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -672,14 +672,14 @@ function IntegrationsView({ linearConnected, onLinearConnect }: { linearConnecte
       {/* V1 Connectors */}
       <div style={{marginBottom:32}}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
-          <span style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.7)"}}>V1 — Deepen Context</span>
+          <span style={{fontSize:13,fontWeight:600,color:"rgba(0,0,0,0.7)"}}>V1 — Deepen Context</span>
           <span style={{fontSize:11,background:"rgba(139,127,245,0.12)",color:C.purpleLight,border:`1px solid ${C.purpleBorder}`,borderRadius:6,padding:"2px 8px"}}>No migration, just deeper reads</span>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:10}}>
           {v1.map(c=>(
-            <div key={c.name} style={{background:"rgba(255,255,255,0.02)",border:`1px dashed ${C.border}`,borderRadius:12,padding:"14px 16px",opacity:0.75}}>
+            <div key={c.name} style={{background:"rgba(0,0,0,0.02)",border:`1px dashed ${C.border}`,borderRadius:12,padding:"14px 16px",opacity:0.75}}>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-                <div style={{width:28,height:28,borderRadius:6,background:c.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:"rgba(255,255,255,0.6)",fontWeight:700}}>{c.letter}</div>
+                <div style={{width:28,height:28,borderRadius:6,background:c.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:"rgba(0,0,0,0.6)",fontWeight:700}}>{c.letter}</div>
                 <span style={{fontSize:13,fontWeight:600,color:C.textMuted}}>{c.name}</span>
                 <span style={{fontSize:10,background:"rgba(139,127,245,0.15)",color:C.purpleLight,borderRadius:4,padding:"2px 6px",marginLeft:"auto"}}>V1</span>
               </div>
@@ -692,7 +692,7 @@ function IntegrationsView({ linearConnected, onLinearConnect }: { linearConnecte
       {/* V2 */}
       <div style={{marginBottom:32}}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
-          <span style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.7)"}}>V2 — Agent Execution</span>
+          <span style={{fontSize:13,fontWeight:600,color:"rgba(0,0,0,0.7)"}}>V2 — Agent Execution</span>
           <span style={{fontSize:11,background:"rgba(249,115,22,0.1)",color:C.orange,border:"1px solid rgba(249,115,22,0.2)",borderRadius:6,padding:"2px 8px"}}>Agents do the building</span>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:10}}>
@@ -733,7 +733,7 @@ function FigmaView() {
       <div style={{width:200,borderRight:`1px solid ${C.border}`,padding:"16px 12px",flexShrink:0}}>
         <div style={{fontSize:11,fontWeight:600,color:C.textDim,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12,padding:"0 6px"}}>Frames</div>
         {frames.map(f=>(
-          <div key={f.id} onClick={()=>setSelectedFrame(f.id)} style={{fontSize:12,padding:"7px 10px",borderRadius:6,marginBottom:3,cursor:"pointer",color:selectedFrame===f.id?"rgba(255,255,255,0.9)":"rgba(255,255,255,0.4)",background:selectedFrame===f.id?C.purpleBg:"transparent",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div key={f.id} onClick={()=>setSelectedFrame(f.id)} style={{fontSize:12,padding:"7px 10px",borderRadius:6,marginBottom:3,cursor:"pointer",color:selectedFrame===f.id?"rgba(0,0,0,0.9)":"rgba(0,0,0,0.4)",background:selectedFrame===f.id?C.purpleBg:"transparent",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
             <span>{f.label}</span>
             {"reqs" in f&&f.reqs&&<span style={{fontSize:10,color:C.purpleLight}}>●</span>}
           </div>
@@ -748,7 +748,7 @@ function FigmaView() {
       </div>
 
       {/* Canvas */}
-      <div style={{flex:1,background:"rgba(255,255,255,0.01)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",position:"relative"}}>
+      <div style={{flex:1,background:"rgba(0,0,0,0.01)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",position:"relative"}}>
         <div style={{position:"absolute",top:14,left:16,fontSize:11,color:C.textDim}}>Payment Step · 1440×900</div>
         {/* Wireframe */}
         <div style={{background:"#1a1a1a",border:`1px solid ${C.border}`,borderRadius:8,width:580,padding:"24px 28px",fontFamily:"Inter,sans-serif"}}>
@@ -756,23 +756,23 @@ function FigmaView() {
           <div style={{display:"flex",gap:4,alignItems:"center",marginBottom:24,justifyContent:"center"}}>
             {["Cart","Shipping","Payment","Confirm"].map((s,i)=>(
               <div key={s} style={{display:"flex",alignItems:"center",gap:4}}>
-                <div style={{width:20,height:20,borderRadius:"50%",background:i<2?C.green:i===2?C.purple:"rgba(255,255,255,0.1)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"white",fontWeight:600}}>{i<2?"✓":i+1}</div>
-                <span style={{fontSize:10,color:i===2?"rgba(255,255,255,0.8)":"rgba(255,255,255,0.3)",fontWeight:i===2?600:400}}>{s}</span>
-                {i<3&&<div style={{width:20,height:1,background:"rgba(255,255,255,0.15)"}}/>}
+                <div style={{width:20,height:20,borderRadius:"50%",background:i<2?C.green:i===2?C.purple:"rgba(0,0,0,0.1)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"white",fontWeight:600}}>{i<2?"✓":i+1}</div>
+                <span style={{fontSize:10,color:i===2?"rgba(0,0,0,0.8)":"rgba(0,0,0,0.3)",fontWeight:i===2?600:400}}>{s}</span>
+                {i<3&&<div style={{width:20,height:1,background:"rgba(0,0,0,0.15)"}}/>}
               </div>
             ))}
           </div>
           <div style={{display:"flex",gap:20}}>
             {/* Left: Payment form */}
             <div style={{flex:1}}>
-              <div style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.6)",marginBottom:12}}>Payment method</div>
+              <div style={{fontSize:12,fontWeight:600,color:"rgba(0,0,0,0.6)",marginBottom:12}}>Payment method</div>
               {/* Wallet buttons — R2 */}
-              <div style={{background:"rgba(100,86,230,0.08)",border:"1px solid rgba(100,86,230,0.2)",borderRadius:6,padding:"6px 8px",marginBottom:4,display:"flex",alignItems:"center",gap:6}}>
+              <div style={{background:"rgba(87,70,232,0.06)",border:"1px solid rgba(87,70,232,0.15)",borderRadius:6,padding:"6px 8px",marginBottom:4,display:"flex",alignItems:"center",gap:6}}>
                 <div style={{width:6,height:6,borderRadius:"50%",background:C.purpleLight}}/>
                 <span style={{fontSize:10,color:C.purpleLight,fontWeight:500}}>R2</span>
                 <div style={{flex:1,background:"#000",borderRadius:5,padding:"8px 14px",textAlign:"center",fontSize:11,color:"white",fontWeight:500}}>🍎 Apple Pay</div>
               </div>
-              <div style={{background:"rgba(100,86,230,0.08)",border:"1px solid rgba(100,86,230,0.2)",borderRadius:6,padding:"6px 8px",marginBottom:12,display:"flex",alignItems:"center",gap:6}}>
+              <div style={{background:"rgba(87,70,232,0.06)",border:"1px solid rgba(87,70,232,0.15)",borderRadius:6,padding:"6px 8px",marginBottom:12,display:"flex",alignItems:"center",gap:6}}>
                 <div style={{width:6,height:6,borderRadius:"50%",background:C.purpleLight}}/>
                 <span style={{fontSize:10,color:C.purpleLight,fontWeight:500}}>R2</span>
                 <div style={{flex:1,background:"white",borderRadius:5,padding:"8px 14px",textAlign:"center",fontSize:11,color:"#000",fontWeight:500}}>G Pay</div>
@@ -781,11 +781,11 @@ function FigmaView() {
               {/* Card form */}
               {[{ph:"Card number",w:"100%"},{ph:"MM / YY",w:"48%"},{ph:"CVV",w:"48%"}].map(f=>(
                 <div key={f.ph} style={{width:f.w,display:"inline-block",marginRight:f.w==="48%"?"4%":"0",marginBottom:8}}>
-                  <div style={{background:"rgba(255,255,255,0.05)",border:`1px solid ${C.border}`,borderRadius:5,padding:"9px 11px",fontSize:11,color:C.textDim}}>{f.ph}</div>
+                  <div style={{background:"rgba(0,0,0,0.05)",border:`1px solid ${C.border}`,borderRadius:5,padding:"9px 11px",fontSize:11,color:C.textDim}}>{f.ph}</div>
                 </div>
               ))}
               {/* Trust badges — R3 */}
-              <div style={{background:"rgba(100,86,230,0.06)",border:"1px solid rgba(100,86,230,0.15)",borderRadius:6,padding:"6px 8px",marginTop:4,display:"flex",alignItems:"center",gap:6}}>
+              <div style={{background:"rgba(87,70,232,0.05)",border:"1px solid rgba(87,70,232,0.1)",borderRadius:6,padding:"6px 8px",marginTop:4,display:"flex",alignItems:"center",gap:6}}>
                 <div style={{width:6,height:6,borderRadius:"50%",background:C.purpleLight}}/>
                 <span style={{fontSize:10,color:C.purpleLight,fontWeight:500}}>R3</span>
                 <div style={{display:"flex",gap:8,alignItems:"center",flex:1,justifyContent:"center"}}>
@@ -795,12 +795,12 @@ function FigmaView() {
             </div>
             {/* Right: Order summary */}
             <div style={{width:180,flexShrink:0}}>
-              <div style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.6)",marginBottom:12}}>Order summary</div>
-              <div style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${C.border}`,borderRadius:6,padding:"12px"}}>
+              <div style={{fontSize:12,fontWeight:600,color:"rgba(0,0,0,0.6)",marginBottom:12}}>Order summary</div>
+              <div style={{background:"rgba(0,0,0,0.03)",border:`1px solid ${C.border}`,borderRadius:6,padding:"12px"}}>
                 <div style={{display:"flex",gap:8,marginBottom:8}}>
-                  <div style={{width:32,height:32,background:"rgba(255,255,255,0.06)",borderRadius:4,flexShrink:0}}/>
-                  <div><div style={{fontSize:11,color:"rgba(255,255,255,0.6)"}}>Premium Plan</div><div style={{fontSize:11,color:C.textDim}}>×1</div></div>
-                  <span style={{marginLeft:"auto",fontSize:11,color:"rgba(255,255,255,0.6)"}}>$49</span>
+                  <div style={{width:32,height:32,background:"rgba(0,0,0,0.06)",borderRadius:4,flexShrink:0}}/>
+                  <div><div style={{fontSize:11,color:"rgba(0,0,0,0.6)"}}>Premium Plan</div><div style={{fontSize:11,color:C.textDim}}>×1</div></div>
+                  <span style={{marginLeft:"auto",fontSize:11,color:"rgba(0,0,0,0.6)"}}>$49</span>
                 </div>
                 <div style={{borderTop:`1px solid ${C.border}`,paddingTop:8,marginTop:4}}>
                   <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}><span style={{fontSize:11,color:C.textDim}}>Subtotal</span><span style={{fontSize:11,color:C.textMuted}}>$49.00</span></div>
@@ -837,7 +837,7 @@ function FigmaView() {
         })}
         <div style={{borderTop:`1px solid ${C.border}`,marginTop:16,paddingTop:14}}>
           <div style={{fontSize:11,color:C.textDim,marginBottom:8}}>Design gaps</div>
-          <div style={{background:"rgba(245,180,69,0.06)",border:"1px solid rgba(245,180,69,0.2)",borderRadius:7,padding:"9px 11px"}}>
+          <div style={{background:"rgba(245,180,69,0.06)",border:"1px solid rgba(180,83,9,0.15)",borderRadius:7,padding:"9px 11px"}}>
             <p style={{fontSize:11,color:"rgba(245,180,69,0.8)",lineHeight:1.5}}>R1 (guest checkout) has no corresponding frame in Figma yet.</p>
           </div>
         </div>
@@ -858,7 +858,7 @@ function VersionHistoryPanel({ onClose }: { onClose: () => void }) {
   return (
     <div style={{width:280,borderLeft:`1px solid ${C.border}`,display:"flex",flexDirection:"column",height:"100%",flexShrink:0}}>
       <div style={{padding:"13px 16px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
-        <span style={{fontSize:13,fontWeight:500,color:"rgba(255,255,255,0.7)"}}>Version History</span>
+        <span style={{fontSize:13,fontWeight:500,color:"rgba(0,0,0,0.7)"}}>Version History</span>
         <button onClick={onClose} style={{background:"none",border:"none",color:C.textDim,cursor:"pointer",fontSize:18}}>×</button>
       </div>
       <div style={{flex:1,overflowY:"auto",padding:"14px 14px"}}>
@@ -866,10 +866,10 @@ function VersionHistoryPanel({ onClose }: { onClose: () => void }) {
           <div key={v.id} style={{marginBottom:16,position:"relative"}}>
             {i<versions.length-1&&<div style={{position:"absolute",left:7,top:22,width:1,height:"calc(100% + 4px)",background:`1px solid ${C.border}`,borderLeft:`1px solid ${C.border}`}}/>}
             <div style={{display:"flex",gap:10}}>
-              <div style={{width:14,height:14,borderRadius:"50%",background:i===0?C.purple:"rgba(255,255,255,0.1)",border:`1px solid ${i===0?C.purple:C.border}`,flexShrink:0,marginTop:2}}/>
+              <div style={{width:14,height:14,borderRadius:"50%",background:i===0?C.purple:"rgba(0,0,0,0.1)",border:`1px solid ${i===0?C.purple:C.border}`,flexShrink:0,marginTop:2}}/>
               <div style={{flex:1}}>
                 <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
-                  <span style={{fontSize:12,fontWeight:i===0?600:400,color:i===0?C.text:"rgba(255,255,255,0.6)"}}>{v.label||v.id}</span>
+                  <span style={{fontSize:12,fontWeight:i===0?600:400,color:i===0?C.text:"rgba(0,0,0,0.6)"}}>{v.label||v.id}</span>
                   {v.tag&&<span style={{fontSize:9,background:"rgba(62,207,142,0.15)",color:C.green,borderRadius:3,padding:"1px 5px"}}>{v.tag}</span>}
                 </div>
                 <p style={{fontSize:11,color:C.textMuted,lineHeight:1.5,marginBottom:5}}>{v.changes}</p>
@@ -878,7 +878,7 @@ function VersionHistoryPanel({ onClose }: { onClose: () => void }) {
                   <span style={{fontSize:10,color:C.textDim}}>·</span>
                   <span style={{fontSize:10,color:C.textDim}}>{v.author==="AI"?"✨ AI generated":`@${v.author}`}</span>
                 </div>
-                {i>0&&<button onClick={()=>setRestored(v.id)} style={{marginTop:7,fontSize:11,padding:"3px 9px",background:restored===v.id?"rgba(62,207,142,0.12)":"rgba(255,255,255,0.05)",border:`1px solid ${restored===v.id?"rgba(62,207,142,0.25)":C.border}`,borderRadius:5,color:restored===v.id?C.green:C.textDim,cursor:"pointer",fontFamily:"inherit"}}>{restored===v.id?"✓ Restored":"Restore →"}</button>}
+                {i>0&&<button onClick={()=>setRestored(v.id)} style={{marginTop:7,fontSize:11,padding:"3px 9px",background:restored===v.id?"rgba(62,207,142,0.12)":"rgba(0,0,0,0.05)",border:`1px solid ${restored===v.id?"rgba(62,207,142,0.25)":C.border}`,borderRadius:5,color:restored===v.id?C.green:C.textDim,cursor:"pointer",fontFamily:"inherit"}}>{restored===v.id?"✓ Restored":"Restore →"}</button>}
               </div>
             </div>
           </div>
@@ -899,12 +899,12 @@ function Sidebar({ activeTab, onTabChange }: { activeTab: string; onTabChange: (
       </div>
       <SL>Projects</SL>
       {[{name:"Checkout redesign",active:true},{name:"Onboarding v2",active:false},{name:"Mobile notifications",active:false}].map(p=>(
-        <div key={p.name} style={{fontSize:12,padding:"6px 9px",borderRadius:6,color:p.active?"rgba(255,255,255,0.88)":"rgba(255,255,255,0.3)",background:p.active?C.purpleBg:"transparent",cursor:"pointer",lineHeight:1.4}}>{p.name}</div>
+        <div key={p.name} style={{fontSize:12,padding:"6px 9px",borderRadius:6,color:p.active?"rgba(0,0,0,0.85)":"rgba(0,0,0,0.3)",background:p.active?C.purpleBg:"transparent",cursor:"pointer",lineHeight:1.4}}>{p.name}</div>
       ))}
       <div style={{borderTop:`1px solid ${C.border}`,margin:"10px 0 6px"}}/>
       <SL>Views</SL>
       {[{k:"prd",l:"PRD"},{k:"tickets",l:"Tickets"},{k:"research",l:"Research"},{k:"figma",l:"Figma"},{k:"integrations",l:"Integrations"}].map(v=>(
-        <div key={v.k} onClick={()=>onTabChange(v.k)} style={{fontSize:12,padding:"6px 9px",borderRadius:6,color:activeTab===v.k?"rgba(255,255,255,0.9)":"rgba(255,255,255,0.35)",background:activeTab===v.k?C.purpleBg:"transparent",cursor:"pointer",fontWeight:activeTab===v.k?500:400,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <div key={v.k} onClick={()=>onTabChange(v.k)} style={{fontSize:12,padding:"6px 9px",borderRadius:6,color:activeTab===v.k?"rgba(0,0,0,0.9)":"rgba(0,0,0,0.35)",background:activeTab===v.k?C.purpleBg:"transparent",cursor:"pointer",fontWeight:activeTab===v.k?500:400,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <span>{v.l}</span>
           {v.k==="figma"&&<span style={{fontSize:9,color:C.purpleLight,background:"rgba(139,127,245,0.15)",borderRadius:3,padding:"1px 4px"}}>V1</span>}
           {v.k==="integrations"&&<span style={{fontSize:9,color:C.green,background:"rgba(62,207,142,0.12)",borderRadius:3,padding:"1px 4px"}}>4 MVP</span>}
@@ -914,7 +914,7 @@ function Sidebar({ activeTab, onTabChange }: { activeTab: string; onTabChange: (
       <div style={{borderTop:`1px solid ${C.border}`,paddingTop:13,marginTop:8}}>
         <SL>Context</SL>
         {["stripe.com","figma/checkout-v3","amplitude.com"].map(s=>(
-          <div key={s} style={{fontSize:11,padding:"3px 8px",color:"rgba(255,255,255,0.3)",display:"flex",gap:6,alignItems:"center",marginBottom:3}}>
+          <div key={s} style={{fontSize:11,padding:"3px 8px",color:"rgba(0,0,0,0.3)",display:"flex",gap:6,alignItems:"center",marginBottom:3}}>
             <div style={{width:5,height:5,borderRadius:"50%",background:C.green,flexShrink:0}}/>
             <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s}</span>
           </div>
@@ -924,7 +924,7 @@ function Sidebar({ activeTab, onTabChange }: { activeTab: string; onTabChange: (
             <span style={{fontSize:10,color:C.textDim}}>Coverage</span>
             <span style={{fontSize:10,color:"rgba(62,207,142,0.75)"}}>87%</span>
           </div>
-          <div style={{height:3,background:"rgba(255,255,255,0.07)",borderRadius:2}}>
+          <div style={{height:3,background:"rgba(0,0,0,0.07)",borderRadius:2}}>
             <div style={{height:"100%",width:"87%",background:`linear-gradient(90deg,${C.green},rgba(62,207,142,0.45))`,borderRadius:2}}/>
           </div>
         </div>
@@ -997,8 +997,8 @@ function WorkspaceContent() {
       <div style={{height:47,borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",paddingLeft:18,paddingRight:18,gap:14,flexShrink:0}}>
         <div style={{display:"flex",alignItems:"center",gap:6}}>
           <a href="/dashboard" style={{fontSize:12,color:C.textDim,textDecoration:"none",transition:"color 0.15s"}} onMouseEnter={e=>e.currentTarget.style.color=C.textMuted} onMouseLeave={e=>e.currentTarget.style.color=C.textDim}>← Projects</a>
-          <span style={{fontSize:12,color:"rgba(255,255,255,0.15)"}}/>/
-          <span style={{fontSize:12,color:"rgba(255,255,255,0.72)",fontWeight:500}}>Checkout redesign</span>
+          <span style={{fontSize:12,color:"rgba(0,0,0,0.15)"}}/>/
+          <span style={{fontSize:12,color:"rgba(0,0,0,0.75)",fontWeight:500}}>Checkout redesign</span>
         </div>
         <div style={{flex:1}}/>
         <div style={{display:"flex",gap:2}}>
@@ -1015,7 +1015,7 @@ function WorkspaceContent() {
             ))}
           </div>
           <span style={{fontSize:11,color:C.textDim}}>3 online</span>
-          <button onClick={()=>setShowVersionHistory(v=>!v)} style={{fontSize:11,padding:"4px 10px",background:showVersionHistory?C.purpleBg:"rgba(255,255,255,0.05)",border:`1px solid ${showVersionHistory?C.purpleBorder:C.border}`,borderRadius:6,color:showVersionHistory?C.purpleLight:C.textDim,cursor:"pointer",fontFamily:"inherit",marginLeft:4}}>History</button>
+          <button onClick={()=>setShowVersionHistory(v=>!v)} style={{fontSize:11,padding:"4px 10px",background:showVersionHistory?C.purpleBg:"rgba(0,0,0,0.05)",border:`1px solid ${showVersionHistory?C.purpleBorder:C.border}`,borderRadius:6,color:showVersionHistory?C.purpleLight:C.textDim,cursor:"pointer",fontFamily:"inherit",marginLeft:4}}>History</button>
         </div>
       </div>
 
@@ -1048,7 +1048,7 @@ function WorkspaceContent() {
 
       <style>{`
         @keyframes vpulse { 0%,100%{transform:scale(0.7);opacity:0.3} 50%{transform:scale(1.15);opacity:1} }
-        ::-webkit-scrollbar{width:4px;height:4px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+        ::-webkit-scrollbar{width:4px;height:4px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.1);border-radius:2px}
         input:focus,button:focus{outline:none}
       `}</style>
     </div>
@@ -1057,7 +1057,7 @@ function WorkspaceContent() {
 
 export default function WorkspacePage() {
   return (
-    <Suspense fallback={<div style={{height:"100vh",background:"#080808"}}/>}>
+    <Suspense fallback={<div style={{height:"100vh",background:"#fafafa"}}/>}>
       <WorkspaceContent/>
     </Suspense>
   );

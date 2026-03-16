@@ -3,10 +3,10 @@
 import { useRouter } from "next/navigation";
 
 const C = {
-  bg: "#080808", surface: "rgba(255,255,255,0.03)", border: "rgba(255,255,255,0.08)",
-  text: "#ffffff", textMuted: "rgba(255,255,255,0.45)", textDim: "rgba(255,255,255,0.22)",
-  purple: "#5746E8", purpleLight: "#8B7FF5", purpleBg: "rgba(100,86,230,0.12)", purpleBorder: "rgba(100,86,230,0.25)",
-  green: "#3ECF8E", yellow: "#F5B445", red: "#F87B72", orange: "#F97316",
+  bg: "#fafafa", surface: "rgba(0,0,0,0.02)", border: "rgba(0,0,0,0.08)",
+  text: "#0f0f0f", textMuted: "rgba(0,0,0,0.55)", textDim: "rgba(0,0,0,0.35)",
+  purple: "#5746E8", purpleLight: "#5746E8", purpleBg: "rgba(87,70,232,0.06)", purpleBorder: "rgba(87,70,232,0.2)",
+  green: "#059669", yellow: "#b45309", red: "#dc2626", orange: "#ea580c",
 };
 
 const PROJECTS = [
@@ -70,9 +70,9 @@ function VLogo({ size }: { size: number }) {
 
 function PhaseTag({ phase }: { phase: string }) {
   const colors: Record<string, { bg: string; color: string }> = {
-    "PRD": { bg: "rgba(100,86,230,0.12)", color: "#8B7FF5" },
-    "Tickets": { bg: "rgba(62,207,142,0.1)", color: "#3ECF8E" },
-    "Shipped": { bg: "rgba(245,180,69,0.1)", color: "#F5B445" },
+    "PRD": { bg: "rgba(87,70,232,0.08)", color: "#5746E8" },
+    "Tickets": { bg: "rgba(5,150,105,0.08)", color: "#059669" },
+    "Shipped": { bg: "rgba(180,83,9,0.08)", color: "#b45309" },
   };
   const s = colors[phase] || colors["PRD"];
   return <span style={{ fontSize: 10, padding: "3px 8px", background: s.bg, color: s.color, borderRadius: 5, fontWeight: 500 }}>{phase}</span>;
@@ -90,7 +90,7 @@ export default function DashboardPage() {
         </div>
         <div style={{ flex: 1 }} />
         <a href="#" style={{ fontSize: 13, color: C.textDim, textDecoration: "none" }}>Settings</a>
-        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(100,86,230,0.25)", border: `1px solid ${C.purpleBorder}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: C.purpleLight, fontWeight: 600, cursor: "default" }}>AK</div>
+        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(87,70,232,0.1)", border: `1px solid ${C.purpleBorder}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: C.purpleLight, fontWeight: 600, cursor: "default" }}>AK</div>
       </div>
 
       <div style={{ maxWidth: 960, margin: "0 auto", padding: "40px 24px" }}>
@@ -101,7 +101,7 @@ export default function DashboardPage() {
             <p style={{ fontSize: 14, color: C.textDim }}>3 active workspaces · 17 requirements · 9 tickets</p>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => router.push("/onboarding")} style={{ fontSize: 13, padding: "8px 16px", background: "rgba(255,255,255,0.06)", border: `1px solid ${C.border}`, borderRadius: 9, color: C.textMuted, cursor: "pointer", fontFamily: "inherit" }}>
+            <button onClick={() => router.push("/onboarding")} style={{ fontSize: 13, padding: "8px 16px", background: "rgba(0,0,0,0.04)", border: `1px solid ${C.border}`, borderRadius: 9, color: C.textMuted, cursor: "pointer", fontFamily: "inherit" }}>
               Import existing product
             </button>
             <button onClick={() => router.push("/")} style={{ fontSize: 13, padding: "8px 18px", background: C.purple, border: "none", borderRadius: 9, color: "#fff", cursor: "pointer", fontFamily: "inherit", fontWeight: 500 }}
@@ -116,9 +116,9 @@ export default function DashboardPage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
           {PROJECTS.map(p => (
             <div key={p.id}
-              style={{ background: C.surface, border: `1px solid ${p.status === "active" ? "rgba(100,86,230,0.25)" : C.border}`, borderRadius: 14, padding: "20px 22px", cursor: "pointer", transition: "all 0.18s", display: "flex", flexDirection: "column", gap: 0 }}
-              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(100,86,230,0.4)"; (e.currentTarget as HTMLDivElement).style.background = "rgba(100,86,230,0.05)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = p.status === "active" ? "rgba(100,86,230,0.25)" : C.border; (e.currentTarget as HTMLDivElement).style.background = C.surface; }}
+              style={{ background: C.surface, border: `1px solid ${p.status === "active" ? "rgba(87,70,232,0.2)" : C.border}`, borderRadius: 14, padding: "20px 22px", cursor: "pointer", transition: "all 0.18s", display: "flex", flexDirection: "column", gap: 0 }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(87,70,232,0.35)"; (e.currentTarget as HTMLDivElement).style.background = "rgba(87,70,232,0.04)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = p.status === "active" ? "rgba(87,70,232,0.2)" : C.border; (e.currentTarget as HTMLDivElement).style.background = C.surface; }}
               onClick={() => router.push(`/workspace?idea=${encodeURIComponent(p.idea)}`)}
             >
               {/* Card header */}
@@ -134,7 +134,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Progress bar */}
-              <div style={{ height: 3, background: "rgba(255,255,255,0.07)", borderRadius: 2, marginBottom: 14 }}>
+              <div style={{ height: 3, background: "rgba(0,0,0,0.07)", borderRadius: 2, marginBottom: 14 }}>
                 <div style={{ height: "100%", width: `${p.progress}%`, background: `linear-gradient(90deg, ${C.purple}, ${C.purpleLight})`, borderRadius: 2, transition: "width 0.5s ease" }} />
               </div>
 
@@ -155,7 +155,7 @@ export default function DashboardPage() {
                   </div>
                 )}
                 <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <span style={{ fontSize: 16, fontWeight: 600, color: "rgba(62,207,142,0.85)" }}>{p.context}</span>
+                  <span style={{ fontSize: 16, fontWeight: 600, color: "#059669" }}>{p.context}</span>
                   <span style={{ fontSize: 10, color: C.textDim }}>Context</span>
                 </div>
               </div>
@@ -164,7 +164,7 @@ export default function DashboardPage() {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto" }}>
                 <div style={{ display: "flex", gap: 5 }}>
                   {p.integrations.map(i => (
-                    <span key={i} style={{ fontSize: 10, padding: "2px 7px", background: "rgba(255,255,255,0.06)", border: `1px solid ${C.border}`, borderRadius: 4, color: C.textMuted }}>{i}</span>
+                    <span key={i} style={{ fontSize: 10, padding: "2px 7px", background: "rgba(0,0,0,0.04)", border: `1px solid ${C.border}`, borderRadius: 4, color: C.textMuted }}>{i}</span>
                   ))}
                   {p.integrations.length === 0 && <span style={{ fontSize: 10, color: C.textDim }}>No integrations yet</span>}
                 </div>
@@ -193,8 +193,8 @@ export default function DashboardPage() {
             <p style={{ fontSize: 12, color: C.textMuted, lineHeight: 1.6 }}>Vantage connects to Linear, Jira, GitHub, Notion, and Figma. You don't migrate — Vantage is the brain, your tools are the hands.</p>
           </div>
           <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-            {[{l:"Linear",c:"#5E6AD2"},{l:"Notion",c:"rgba(255,255,255,0.1)"},{l:"GitHub",c:"rgba(255,255,255,0.1)"},{l:"Figma",c:"rgba(162,89,255,0.3)"},{l:"Jira",c:"rgba(0,101,255,0.2)"}].map(i=>(
-              <div key={i.l} title={i.l} style={{width:30,height:30,borderRadius:7,background:i.c,border:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"rgba(255,255,255,0.5)",fontWeight:600}}>{i.l[0]}</div>
+            {[{l:"Linear",c:"#5E6AD2"},{l:"Notion",c:"rgba(0,0,0,0.05)"},{l:"GitHub",c:"rgba(0,0,0,0.05)"},{l:"Figma",c:"rgba(162,89,255,0.3)"},{l:"Jira",c:"rgba(0,101,255,0.2)"}].map(i=>(
+              <div key={i.l} title={i.l} style={{width:30,height:30,borderRadius:7,background:i.c,border:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"rgba(0,0,0,0.5)",fontWeight:600}}>{i.l[0]}</div>
             ))}
             <button onClick={() => router.push("/workspace?idea=Checkout+Redesign")} style={{ marginLeft: 8, fontSize: 12, padding: "7px 14px", background: C.purple, border: "none", borderRadius: 8, color: "#fff", cursor: "pointer", fontFamily: "inherit", fontWeight: 500 }}>Manage →</button>
           </div>

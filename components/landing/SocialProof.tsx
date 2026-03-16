@@ -4,10 +4,10 @@ export default function SocialProof() {
   return (
     <div
       style={{
-        borderTop: "1px solid rgba(255,255,255,0.06)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        borderTop: "1px solid rgba(0,0,0,0.07)",
+        borderBottom: "1px solid rgba(0,0,0,0.07)",
         padding: "14px 40px",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(0,0,0,0.02)",
       }}
     >
       <div
@@ -23,7 +23,7 @@ export default function SocialProof() {
       >
         {/* Left */}
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
+          <span style={{ fontSize: 12, color: "rgba(0,0,0,0.4)" }}>
             Trusted by PMs at
           </span>
           <div style={{ display: "flex", gap: 6 }}>
@@ -32,9 +32,9 @@ export default function SocialProof() {
                 key={label}
                 style={{
                   fontSize: 11,
-                  color: "rgba(255,255,255,0.4)",
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "rgba(0,0,0,0.5)",
+                  background: "rgba(0,0,0,0.04)",
+                  border: "1px solid rgba(0,0,0,0.08)",
                   borderRadius: 20,
                   padding: "3px 10px",
                 }}
@@ -55,14 +55,14 @@ export default function SocialProof() {
                   width: 26,
                   height: 26,
                   borderRadius: "50%",
-                  background: "rgba(100,86,230,0.25)",
-                  color: "rgba(180,170,255,0.9)",
+                  background: "rgba(87,70,232,0.1)",
+                  color: "#5746E8",
                   fontSize: 9,
                   fontWeight: 500,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  border: "2px solid #080808",
+                  border: "2px solid #fafafa",
                   marginLeft: i === 0 ? 0 : -7,
                   position: "relative",
                   zIndex: INITIALS.length - i,
@@ -72,7 +72,7 @@ export default function SocialProof() {
               </div>
             ))}
           </div>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
+          <span style={{ fontSize: 12, color: "rgba(0,0,0,0.4)" }}>
             240+ PMs on the waitlist
           </span>
         </div>

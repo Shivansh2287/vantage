@@ -17,7 +17,7 @@ export default function Waitlist() {
       style={{
         padding: "120px 24px",
         textAlign: "center",
-        borderTop: "1px solid rgba(255,255,255,0.06)",
+        borderTop: "1px solid rgba(0,0,0,0.07)",
         position: "relative",
         overflow: "hidden",
       }}
@@ -32,7 +32,7 @@ export default function Waitlist() {
           transform: "translateX(-50%)",
           width: 500,
           height: 300,
-          background: "radial-gradient(ellipse at center, rgba(100,86,230,0.15) 0%, transparent 70%)",
+          background: "radial-gradient(ellipse at center, rgba(87,70,232,0.08) 0%, transparent 70%)",
           pointerEvents: "none",
         }}
       />
@@ -44,7 +44,7 @@ export default function Waitlist() {
             fontWeight: 600,
             letterSpacing: "-1px",
             lineHeight: 1.15,
-            color: "#ffffff",
+            color: "#0f0f0f",
             marginBottom: 14,
           }}
         >
@@ -54,7 +54,7 @@ export default function Waitlist() {
         <p
           style={{
             fontSize: 16,
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(0,0,0,0.45)",
             lineHeight: 1.7,
             marginBottom: 36,
           }}
@@ -68,9 +68,9 @@ export default function Waitlist() {
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
-              background: "rgba(62,201,142,0.1)",
-              border: "1px solid rgba(62,201,142,0.2)",
-              color: "#3EC98E",
+              background: "rgba(5,150,105,0.08)",
+              border: "1px solid rgba(5,150,105,0.2)",
+              color: "#059669",
               fontSize: 14,
               fontWeight: 500,
               padding: "12px 20px",
@@ -78,8 +78,8 @@ export default function Waitlist() {
             }}
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <circle cx="7" cy="7" r="6.5" stroke="#3EC98E" strokeOpacity="0.5"/>
-              <path d="M4.5 7l2 2 3-3" stroke="#3EC98E" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="7" cy="7" r="6.5" stroke="#059669" strokeOpacity="0.5"/>
+              <path d="M4.5 7l2 2 3-3" stroke="#059669" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             You&apos;re on the list. We&apos;ll be in touch soon.
           </div>
@@ -99,15 +99,15 @@ export default function Waitlist() {
                 flex: 1,
                 padding: "11px 16px",
                 fontSize: 14,
-                color: "#ffffff",
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)",
+                color: "#0f0f0f",
+                background: "#ffffff",
+                border: "1px solid rgba(0,0,0,0.12)",
                 borderRadius: 10,
                 fontFamily: "inherit",
                 transition: "border-color 0.15s",
               }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(100,86,230,0.5)")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(87,70,232,0.5)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(0,0,0,0.12)")}
             />
             <button
               type="submit"

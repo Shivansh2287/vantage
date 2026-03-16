@@ -8,12 +8,12 @@ const LINKS = {
 
 export default function Footer() {
   return (
-    <footer style={{ background: "#080808", position: "relative" }}>
+    <footer style={{ background: "#f5f5f5", position: "relative" }}>
       {/* Top gradient line */}
       <div
         style={{
           height: 1,
-          background: "linear-gradient(90deg, transparent 0%, rgba(100,86,230,0.4) 30%, rgba(100,86,230,0.4) 70%, transparent 100%)",
+          background: "linear-gradient(90deg, transparent 0%, rgba(87,70,232,0.3) 30%, rgba(87,70,232,0.3) 70%, transparent 100%)",
         }}
       />
 
@@ -22,10 +22,10 @@ export default function Footer() {
         <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 48, marginBottom: 56 }} className="footer-grid">
           {/* Brand col */}
           <div>
-            <p style={{ fontSize: 15, fontWeight: 500, letterSpacing: "-0.3px", color: "rgba(255,255,255,0.8)", marginBottom: 10 }}>
+            <p style={{ fontSize: 15, fontWeight: 500, letterSpacing: "-0.3px", color: "rgba(0,0,0,0.8)", marginBottom: 10 }}>
               Vantage
             </p>
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", lineHeight: 1.65, maxWidth: 220 }}>
+            <p style={{ fontSize: 13, color: "rgba(0,0,0,0.4)", lineHeight: 1.65, maxWidth: 220 }}>
               AI-powered product planning workspace for modern PM teams.
             </p>
           </div>
@@ -33,7 +33,7 @@ export default function Footer() {
           {/* Link columns */}
           {Object.entries(LINKS).map(([heading, items]) => (
             <div key={heading}>
-              <p style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>
+              <p style={{ fontSize: 11, fontWeight: 500, color: "rgba(0,0,0,0.3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>
                 {heading}
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -41,9 +41,9 @@ export default function Footer() {
                   <a
                     key={item}
                     href="#"
-                    style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", textDecoration: "none", transition: "color 0.15s" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.7)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.35)")}
+                    style={{ fontSize: 13, color: "rgba(0,0,0,0.45)", textDecoration: "none", transition: "color 0.15s" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(0,0,0,0.8)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(0,0,0,0.45)")}
                   >
                     {item}
                   </a>
@@ -56,7 +56,7 @@ export default function Footer() {
         {/* Bottom row */}
         <div
           style={{
-            borderTop: "1px solid rgba(255,255,255,0.06)",
+            borderTop: "1px solid rgba(0,0,0,0.07)",
             paddingTop: 24,
             display: "flex",
             alignItems: "center",
@@ -65,7 +65,7 @@ export default function Footer() {
             gap: 12,
           }}
         >
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.2)" }}>
+          <p style={{ fontSize: 12, color: "rgba(0,0,0,0.3)" }}>
             © 2024 Vantage. All rights reserved.
           </p>
           <div style={{ display: "flex", gap: 20 }}>
@@ -73,9 +73,9 @@ export default function Footer() {
               <a
                 key={s}
                 href="#"
-                style={{ fontSize: 12, color: "rgba(255,255,255,0.25)", textDecoration: "none", transition: "color 0.15s" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.25)")}
+                style={{ fontSize: 12, color: "rgba(0,0,0,0.35)", textDecoration: "none", transition: "color 0.15s" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(0,0,0,0.7)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(0,0,0,0.35)")}
               >
                 {s}
               </a>

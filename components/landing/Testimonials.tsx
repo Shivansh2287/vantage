@@ -4,8 +4,8 @@ const TESTIMONIALS = [
     name: "Arjun K.",
     role: "PM · Series A fintech",
     initials: "AK",
-    color: "rgba(100,86,230,0.2)",
-    textColor: "#8B7FF5",
+    color: "rgba(87,70,232,0.1)",
+    textColor: "#5746E8",
     featured: true,
   },
   {
@@ -13,8 +13,8 @@ const TESTIMONIALS = [
     name: "Sara R.",
     role: "Head of Product · SaaS startup",
     initials: "SR",
-    color: "rgba(62,201,142,0.15)",
-    textColor: "#3EC98E",
+    color: "rgba(5,150,105,0.1)",
+    textColor: "#059669",
     featured: false,
   },
   {
@@ -22,8 +22,8 @@ const TESTIMONIALS = [
     name: "Tom M.",
     role: "Product Lead · Dev tools",
     initials: "TM",
-    color: "rgba(245,180,69,0.15)",
-    textColor: "#F5B445",
+    color: "rgba(180,83,9,0.08)",
+    textColor: "#b45309",
     featured: false,
   },
 ];
@@ -35,16 +35,16 @@ export default function Testimonials() {
     <section
       style={{
         padding: "120px 24px",
-        borderTop: "1px solid rgba(255,255,255,0.06)",
+        borderTop: "1px solid rgba(0,0,0,0.07)",
       }}
     >
       <div style={{ maxWidth: 960, margin: "0 auto" }}>
-        {/* Centered heading — but layout below is asymmetric */}
+        {/* Centered heading */}
         <div style={{ textAlign: "center", marginBottom: 64 }}>
-          <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.22)", marginBottom: 14 }}>
+          <p style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(0,0,0,0.3)", marginBottom: 14 }}>
             Early feedback
           </p>
-          <h2 style={{ fontSize: 38, fontWeight: 600, letterSpacing: "-0.9px", color: "#ffffff" }}>
+          <h2 style={{ fontSize: 38, fontWeight: 600, letterSpacing: "-0.9px", color: "#0f0f0f" }}>
             What PMs are saying
           </h2>
         </div>
@@ -54,8 +54,8 @@ export default function Testimonials() {
           {/* Featured */}
           <div
             style={{
-              background: "rgba(100,86,230,0.06)",
-              border: "1px solid rgba(100,86,230,0.2)",
+              background: "rgba(87,70,232,0.05)",
+              border: "1px solid rgba(87,70,232,0.15)",
               borderRadius: 16,
               padding: 36,
               display: "flex",
@@ -66,10 +66,10 @@ export default function Testimonials() {
           >
             {/* Big quote mark */}
             <svg width="32" height="24" viewBox="0 0 32 24" fill="none">
-              <path d="M0 24V14.4C0 6.24 4.48 1.44 13.44 0l1.92 3.36C10.56 4.56 8.16 7.44 7.68 12H14.4V24H0zm17.6 0V14.4C17.6 6.24 22.08 1.44 31.04 0l1.92 3.36C28.16 4.56 25.76 7.44 25.28 12H32V24H17.6z" fill="rgba(100,86,230,0.3)"/>
+              <path d="M0 24V14.4C0 6.24 4.48 1.44 13.44 0l1.92 3.36C10.56 4.56 8.16 7.44 7.68 12H14.4V24H0zm17.6 0V14.4C17.6 6.24 22.08 1.44 31.04 0l1.92 3.36C28.16 4.56 25.76 7.44 25.28 12H32V24H17.6z" fill="rgba(87,70,232,0.2)"/>
             </svg>
 
-            <p style={{ fontSize: 20, fontWeight: 400, color: "rgba(255,255,255,0.75)", lineHeight: 1.6, letterSpacing: "-0.2px" }}>
+            <p style={{ fontSize: 20, fontWeight: 400, color: "rgba(0,0,0,0.7)", lineHeight: 1.6, letterSpacing: "-0.2px" }}>
               &ldquo;{featured.quote}&rdquo;
             </p>
 
@@ -92,8 +92,8 @@ export default function Testimonials() {
                 {featured.initials}
               </div>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.8)" }}>{featured.name}</p>
-                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{featured.role}</p>
+                <p style={{ fontSize: 13, fontWeight: 500, color: "rgba(0,0,0,0.8)" }}>{featured.name}</p>
+                <p style={{ fontSize: 11, color: "rgba(0,0,0,0.4)" }}>{featured.role}</p>
               </div>
             </div>
           </div>
@@ -104,8 +104,8 @@ export default function Testimonials() {
               <div
                 key={t.name}
                 style={{
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.07)",
+                  background: "#ffffff",
+                  border: "1px solid rgba(0,0,0,0.08)",
                   borderRadius: 14,
                   padding: 24,
                   display: "flex",
@@ -117,12 +117,12 @@ export default function Testimonials() {
               >
                 <div style={{ display: "flex", gap: 3, marginBottom: 4 }}>
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <svg key={i} width="11" height="11" viewBox="0 0 12 12" fill={t.textColor} opacity={0.6}>
+                    <svg key={i} width="11" height="11" viewBox="0 0 12 12" fill={t.textColor} opacity={0.7}>
                       <path d="M6 1l1.2 3.7H11L8.1 6.8 9.3 10.5 6 8.4 2.7 10.5 3.9 6.8 1 4.7h3.8z"/>
                     </svg>
                   ))}
                 </div>
-                <p style={{ fontSize: 14, fontStyle: "italic", color: "rgba(255,255,255,0.55)", lineHeight: 1.65, flex: 1 }}>
+                <p style={{ fontSize: 14, fontStyle: "italic", color: "rgba(0,0,0,0.55)", lineHeight: 1.65, flex: 1 }}>
                   &ldquo;{t.quote}&rdquo;
                 </p>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -130,8 +130,8 @@ export default function Testimonials() {
                     {t.initials}
                   </div>
                   <div>
-                    <p style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.7)" }}>{t.name}</p>
-                    <p style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>{t.role}</p>
+                    <p style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,0,0,0.7)" }}>{t.name}</p>
+                    <p style={{ fontSize: 11, color: "rgba(0,0,0,0.35)" }}>{t.role}</p>
                   </div>
                 </div>
               </div>

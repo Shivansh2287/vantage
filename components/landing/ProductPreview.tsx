@@ -34,24 +34,24 @@ function ReqCard({
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.07)",
+        border: "1px solid rgba(0,0,0,0.08)",
         borderRadius: 8,
         padding: "10px 12px",
-        background: "rgba(255,255,255,0.03)",
+        background: "#ffffff",
         display: "flex",
         flexDirection: "column",
         gap: 5,
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-        <span style={{ fontSize: 11, fontWeight: 500, color: "#8B7FF5" }}>{id}</span>
-        <Badge bg="rgba(245,60,50,0.12)" color="rgba(255,130,120,0.9)">P0</Badge>
+        <span style={{ fontSize: 11, fontWeight: 500, color: "#5746E8" }}>{id}</span>
+        <Badge bg="rgba(220,38,38,0.08)" color="#dc2626">P0</Badge>
         {warning && (
-          <Badge bg="rgba(239,159,39,0.12)" color="rgba(255,185,80,0.9)">{warning}</Badge>
+          <Badge bg="rgba(180,83,9,0.08)" color="#b45309">{warning}</Badge>
         )}
       </div>
-      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", lineHeight: 1.4 }}>{title}</p>
-      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{effort}</p>
+      <p style={{ fontSize: 12, color: "rgba(0,0,0,0.75)", lineHeight: 1.4 }}>{title}</p>
+      <p style={{ fontSize: 11, color: "rgba(0,0,0,0.35)" }}>{effort}</p>
     </div>
   );
 }
@@ -63,21 +63,22 @@ export default function ProductPreview() {
         style={{
           maxWidth: 960,
           margin: "0 auto",
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.08)",
+          background: "#fafafa",
+          border: "1px solid rgba(0,0,0,0.08)",
           borderRadius: 16,
           overflow: "hidden",
+          boxShadow: "0 4px 32px rgba(0,0,0,0.06)",
         }}
       >
         {/* Browser bar */}
         <div
           style={{
-            borderBottom: "1px solid rgba(255,255,255,0.07)",
+            borderBottom: "1px solid rgba(0,0,0,0.07)",
             padding: "10px 16px",
             display: "flex",
             alignItems: "center",
             position: "relative",
-            background: "rgba(255,255,255,0.02)",
+            background: "rgba(0,0,0,0.02)",
           }}
         >
           <DotRow />
@@ -87,9 +88,9 @@ export default function ProductPreview() {
               left: "50%",
               transform: "translateX(-50%)",
               fontSize: 11,
-              color: "rgba(255,255,255,0.3)",
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              color: "rgba(0,0,0,0.35)",
+              background: "rgba(0,0,0,0.04)",
+              border: "1px solid rgba(0,0,0,0.08)",
               borderRadius: 6,
               padding: "3px 12px",
               whiteSpace: "nowrap",
@@ -105,16 +106,17 @@ export default function ProductPreview() {
           <div
             style={{
               flex: 1,
-              borderRight: "1px solid rgba(255,255,255,0.07)",
+              borderRight: "1px solid rgba(0,0,0,0.07)",
               padding: 20,
               display: "flex",
               flexDirection: "column",
               gap: 10,
+              background: "#ffffff",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.7)" }}>Requirements</span>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>3 of 8</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,0,0,0.7)" }}>Requirements</span>
+              <span style={{ fontSize: 11, color: "rgba(0,0,0,0.35)" }}>3 of 8</span>
             </div>
 
             <ReqCard id="R1" title="Guest checkout must not require account creation" effort="M · 3 pts" />
@@ -141,9 +143,9 @@ export default function ProductPreview() {
                 style={{
                   fontSize: 12,
                   fontWeight: 500,
-                  color: "rgba(255,255,255,0.6)",
+                  color: "rgba(0,0,0,0.55)",
                   background: "transparent",
-                  border: "1px solid rgba(255,255,255,0.1)",
+                  border: "1px solid rgba(0,0,0,0.1)",
                   borderRadius: 7,
                   padding: "7px 14px",
                   cursor: "pointer",
@@ -163,9 +165,10 @@ export default function ProductPreview() {
               display: "flex",
               flexDirection: "column",
               gap: 10,
+              background: "#fafafa",
             }}
           >
-            <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.7)", marginBottom: 4, display: "block" }}>
+            <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,0,0,0.6)", marginBottom: 4, display: "block" }}>
               Research
             </span>
 
@@ -173,9 +176,9 @@ export default function ProductPreview() {
             <div style={{ display: "flex", justifyContent: "flex-end" }}>
               <div
                 style={{
-                  background: "rgba(100,86,230,0.2)",
-                  border: "1px solid rgba(100,86,230,0.3)",
-                  color: "rgba(200,195,255,0.9)",
+                  background: "rgba(87,70,232,0.08)",
+                  border: "1px solid rgba(87,70,232,0.15)",
+                  color: "#5746E8",
                   fontSize: 12,
                   lineHeight: 1.5,
                   padding: "8px 10px",
@@ -191,18 +194,18 @@ export default function ProductPreview() {
             <div style={{ display: "flex", justifyContent: "flex-start" }}>
               <div
                 style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  background: "#ffffff",
+                  border: "1px solid rgba(0,0,0,0.08)",
                   fontSize: 12,
                   lineHeight: 1.6,
                   padding: "10px 12px",
                   borderRadius: "8px 8px 8px 2px",
-                  color: "rgba(255,255,255,0.65)",
+                  color: "rgba(0,0,0,0.6)",
                 }}
               >
                 <p style={{ marginBottom: 8 }}>
-                  Leading checkouts cut steps to 3 or fewer. Guest checkout reduces drop-off by 23%.<sup style={{ color: "#8B7FF5" }}>1</sup>{" "}
-                  Stripe data shows autofill improves conversion 18%.<sup style={{ color: "#8B7FF5" }}>2</sup>
+                  Leading checkouts cut steps to 3 or fewer. Guest checkout reduces drop-off by 23%.<sup style={{ color: "#5746E8" }}>1</sup>{" "}
+                  Stripe data shows autofill improves conversion 18%.<sup style={{ color: "#5746E8" }}>2</sup>
                 </p>
                 <div style={{ display: "flex", gap: 5, marginBottom: 8 }}>
                   {["¹ Baymard", "² Stripe blog"].map((c) => (
@@ -210,8 +213,8 @@ export default function ProductPreview() {
                       key={c}
                       style={{
                         fontSize: 10,
-                        background: "rgba(100,86,230,0.15)",
-                        color: "rgba(170,160,255,0.8)",
+                        background: "rgba(87,70,232,0.08)",
+                        color: "#5746E8",
                         borderRadius: 4,
                         padding: "2px 6px",
                       }}
@@ -220,7 +223,7 @@ export default function ProductPreview() {
                     </span>
                   ))}
                 </div>
-                <a href="#" style={{ fontSize: 11, color: "#8B7FF5", textDecoration: "none" }}>
+                <a href="#" style={{ fontSize: 11, color: "#5746E8", textDecoration: "none" }}>
                   Insert into PRD →
                 </a>
               </div>
@@ -232,7 +235,7 @@ export default function ProductPreview() {
       <style>{`
         @media (max-width: 768px) {
           .preview-panes { flex-direction: column !important; }
-          .preview-panes > div:last-child { width: 100% !important; border-right: none !important; border-top: 1px solid rgba(255,255,255,0.07); }
+          .preview-panes > div:last-child { width: 100% !important; border-right: none !important; border-top: 1px solid rgba(0,0,0,0.07); }
         }
       `}</style>
     </section>

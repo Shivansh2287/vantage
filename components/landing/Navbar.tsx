@@ -24,9 +24,9 @@ export default function Navbar() {
         alignItems: "center",
         padding: "0 32px",
         transition: "background 0.2s, border-color 0.2s",
-        background: scrolled ? "rgba(8,8,8,0.85)" : "transparent",
+        background: scrolled ? "rgba(250,250,250,0.9)" : "transparent",
         backdropFilter: scrolled ? "blur(12px)" : "none",
-        borderBottom: scrolled ? "1px solid rgba(255,255,255,0.06)" : "1px solid transparent",
+        borderBottom: scrolled ? "1px solid rgba(0,0,0,0.08)" : "1px solid transparent",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
@@ -37,7 +37,7 @@ export default function Navbar() {
             fontSize: 15,
             fontWeight: 500,
             letterSpacing: "-0.3px",
-            color: "#ffffff",
+            color: "#0f0f0f",
             textDecoration: "none",
           }}
         >
@@ -55,12 +55,12 @@ export default function Navbar() {
               href={`#${label.toLowerCase()}`}
               style={{
                 fontSize: 13,
-                color: "rgba(255,255,255,0.5)",
+                color: "rgba(0,0,0,0.45)",
                 textDecoration: "none",
                 transition: "color 0.15s",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.9)")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.5)")}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(0,0,0,0.85)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(0,0,0,0.45)")}
             >
               {label}
             </a>
@@ -74,14 +74,14 @@ export default function Navbar() {
             style={{
               fontSize: 13,
               fontWeight: 400,
-              color: "rgba(255,255,255,0.6)",
+              color: "rgba(0,0,0,0.5)",
               textDecoration: "none",
               padding: "6px 14px",
               borderRadius: 8,
               transition: "color 0.15s",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#0f0f0f")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(0,0,0,0.5)")}
           >
             Sign in
           </a>
@@ -90,21 +90,21 @@ export default function Navbar() {
             style={{
               fontSize: 13,
               fontWeight: 500,
-              color: "#ffffff",
+              color: "#0f0f0f",
               textDecoration: "none",
               padding: "6px 14px",
-              background: "rgba(255,255,255,0.08)",
-              border: "1px solid rgba(255,255,255,0.12)",
+              background: "rgba(0,0,0,0.06)",
+              border: "1px solid rgba(0,0,0,0.12)",
               borderRadius: 8,
               transition: "background 0.15s, border-color 0.15s",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.13)";
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)";
+              e.currentTarget.style.background = "rgba(0,0,0,0.1)";
+              e.currentTarget.style.borderColor = "rgba(0,0,0,0.18)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
+              e.currentTarget.style.background = "rgba(0,0,0,0.06)";
+              e.currentTarget.style.borderColor = "rgba(0,0,0,0.12)";
             }}
           >
             Get early access

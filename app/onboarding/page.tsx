@@ -4,11 +4,11 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 const C = {
-  bg: "#080808", surface: "rgba(255,255,255,0.03)", border: "rgba(255,255,255,0.08)",
-  text: "#ffffff", textMuted: "rgba(255,255,255,0.45)", textDim: "rgba(255,255,255,0.22)",
-  purple: "#5746E8", purpleHover: "#4336D4", purpleLight: "#8B7FF5",
-  purpleBg: "rgba(100,86,230,0.12)", purpleBorder: "rgba(100,86,230,0.25)",
-  green: "#3ECF8E",
+  bg: "#fafafa", surface: "rgba(0,0,0,0.02)", border: "rgba(0,0,0,0.08)",
+  text: "#0f0f0f", textMuted: "rgba(0,0,0,0.55)", textDim: "rgba(0,0,0,0.35)",
+  purple: "#5746E8", purpleHover: "#4336D4", purpleLight: "#5746E8",
+  purpleBg: "rgba(87,70,232,0.07)", purpleBorder: "rgba(87,70,232,0.2)",
+  green: "#059669", yellow: "#b45309",
 };
 
 function VLogo({ size }: { size: number }) {
@@ -84,7 +84,7 @@ export default function OnboardingPage() {
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           {([1,2,3,4] as const).map((n, i) => (
             <div key={n} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <div style={{ width: 22, height: 22, borderRadius: "50%", background: step > n ? C.green : step === n ? C.purple : "rgba(255,255,255,0.08)", border: `1px solid ${step > n ? C.green : step === n ? C.purple : C.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 600, color: "white", transition: "all 0.3s" }}>
+              <div style={{ width: 22, height: 22, borderRadius: "50%", background: step > n ? C.green : step === n ? C.purple : "rgba(0,0,0,0.08)", border: `1px solid ${step > n ? C.green : step === n ? C.purple : C.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 600, color: "white", transition: "all 0.3s" }}>
                 {step > n ? "✓" : n}
               </div>
               {i < 3 && <div style={{ width: 24, height: 1, background: step > n ? C.green : C.border, transition: "background 0.3s" }} />}
@@ -109,7 +109,7 @@ export default function OnboardingPage() {
 
               <form onSubmit={handleCrawl}>
                 <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-                  <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://yourproduct.com" style={{ flex: 1, padding: "12px 16px", fontSize: 14, color: C.text, background: "rgba(255,255,255,0.05)", border: `1px solid ${C.border}`, borderRadius: 10, fontFamily: "inherit" }} onFocus={e => e.currentTarget.style.borderColor = "rgba(100,86,230,0.45)"} onBlur={e => e.currentTarget.style.borderColor = C.border} />
+                  <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://yourproduct.com" style={{ flex: 1, padding: "12px 16px", fontSize: 14, color: C.text, background: "rgba(0,0,0,0.05)", border: `1px solid ${C.border}`, borderRadius: 10, fontFamily: "inherit" }} onFocus={e => e.currentTarget.style.borderColor = "rgba(87,70,232,0.45)"} onBlur={e => e.currentTarget.style.borderColor = C.border} />
                   <button type="submit" disabled={crawlState === "crawling"} style={{ padding: "12px 22px", background: C.purple, border: "none", borderRadius: 10, color: "#fff", cursor: crawlState === "crawling" ? "not-allowed" : "pointer", fontSize: 14, fontFamily: "inherit", fontWeight: 500, opacity: crawlState === "crawling" ? 0.7 : 1 }}>
                     {crawlState === "idle" ? "Crawl →" : crawlState === "crawling" ? "Crawling..." : "Done ✓"}
                   </button>
@@ -123,14 +123,14 @@ export default function OnboardingPage() {
                     <span style={{ fontSize: 13, color: C.textMuted }}>Crawling {url || "your product"}...</span>
                   </div>
                   <div style={{ fontSize: 12, color: C.textDim }}>{crawlCount} pages indexed</div>
-                  <div style={{ height: 3, background: "rgba(255,255,255,0.07)", borderRadius: 2, marginTop: 10 }}>
+                  <div style={{ height: 3, background: "rgba(0,0,0,0.07)", borderRadius: 2, marginTop: 10 }}>
                     <div style={{ height: "100%", width: `${Math.min(100, (crawlCount / EXTRACTED.pages) * 100)}%`, background: `linear-gradient(90deg, ${C.purple}, ${C.purpleLight})`, borderRadius: 2, transition: "width 0.3s" }} />
                   </div>
                 </div>
               )}
 
               {crawlState === "done" && (
-                <div style={{ background: "rgba(62,207,142,0.06)", border: "1px solid rgba(62,207,142,0.2)", borderRadius: 10, padding: "14px 18px", display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ background: "rgba(5,150,105,0.06)", border: "1px solid rgba(5,150,105,0.15))", borderRadius: 10, padding: "14px 18px", display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 16 }}>✓</span>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 500, color: C.green }}>{EXTRACTED.pages} pages indexed</div>
@@ -161,7 +161,7 @@ export default function OnboardingPage() {
 
               {/* Docs */}
               <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.65)", marginBottom: 10 }}>Documents <span style={{ fontSize: 11, color: C.textDim }}>(PRDs, specs, meeting notes)</span></div>
+                <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(0,0,0,0.65)", marginBottom: 10 }}>Documents <span style={{ fontSize: 11, color: C.textDim }}>(PRDs, specs, meeting notes)</span></div>
                 <div style={{ background: C.surface, border: `1px dashed ${C.border}`, borderRadius: 10, padding: "20px", textAlign: "center", cursor: "pointer", marginBottom: 10 }}
                   onClick={() => handleDocAdd(`Checkout-PRD-v1.pdf`)}>
                   <div style={{ fontSize: 22, marginBottom: 6 }}>📄</div>
@@ -171,8 +171,8 @@ export default function OnboardingPage() {
                 {docs.length > 0 && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     {docs.map(d => (
-                      <div key={d} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "rgba(62,207,142,0.06)", border: "1px solid rgba(62,207,142,0.15)", borderRadius: 7 }}>
-                        <span style={{ fontSize: 14 }}>✓</span><span style={{ fontSize: 12, color: "rgba(62,207,142,0.85)" }}>{d}</span>
+                      <div key={d} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "rgba(5,150,105,0.06)", border: "1px solid rgba(5,150,105,0.15)", borderRadius: 7 }}>
+                        <span style={{ fontSize: 14 }}>✓</span><span style={{ fontSize: 12, color: "#059669" }}>{d}</span>
                       </div>
                     ))}
                   </div>
@@ -181,7 +181,7 @@ export default function OnboardingPage() {
 
               {/* Screenshots */}
               <div style={{ marginBottom: 28 }}>
-                <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.65)", marginBottom: 10 }}>Screenshots <span style={{ fontSize: 11, color: C.textDim }}>(app flows, key screens)</span></div>
+                <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(0,0,0,0.65)", marginBottom: 10 }}>Screenshots <span style={{ fontSize: 11, color: C.textDim }}>(app flows, key screens)</span></div>
                 <div style={{ background: C.surface, border: `1px dashed ${C.border}`, borderRadius: 10, padding: "20px", textAlign: "center", cursor: "pointer", marginBottom: 10 }}
                   onClick={() => handleScreenshotAdd(`checkout-flow-${screenshots.length + 1}.png`)}>
                   <div style={{ fontSize: 22, marginBottom: 6 }}>🖼️</div>
@@ -191,7 +191,7 @@ export default function OnboardingPage() {
                 {screenshots.length > 0 && (
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     {screenshots.map(s => (
-                      <div key={s} style={{ padding: "6px 10px", background: "rgba(62,207,142,0.06)", border: "1px solid rgba(62,207,142,0.15)", borderRadius: 6, fontSize: 11, color: "rgba(62,207,142,0.85)", display: "flex", alignItems: "center", gap: 6 }}>
+                      <div key={s} style={{ padding: "6px 10px", background: "rgba(5,150,105,0.06)", border: "1px solid rgba(5,150,105,0.15)", borderRadius: 6, fontSize: 11, color: "#059669", display: "flex", alignItems: "center", gap: 6 }}>
                         <span>🖼️</span>{s}
                       </div>
                     ))}
@@ -205,8 +205,8 @@ export default function OnboardingPage() {
                   <span style={{ fontSize: 13, color: C.textMuted }}>Context coverage</span>
                   <span style={{ fontSize: 13, fontWeight: 600, color: coverage >= 70 ? C.green : C.yellow }}>{coverage}%</span>
                 </div>
-                <div style={{ height: 6, background: "rgba(255,255,255,0.07)", borderRadius: 3 }}>
-                  <div style={{ height: "100%", width: `${coverage}%`, background: coverage >= 70 ? `linear-gradient(90deg, ${C.green}, rgba(62,207,142,0.5))` : `linear-gradient(90deg, ${C.yellow}, rgba(245,180,69,0.5))`, borderRadius: 3, transition: "width 0.4s ease" }} />
+                <div style={{ height: 6, background: "rgba(0,0,0,0.07)", borderRadius: 3 }}>
+                  <div style={{ height: "100%", width: `${coverage}%`, background: coverage >= 70 ? `linear-gradient(90deg, ${C.green}, rgba(5,150,105,0.5))` : `linear-gradient(90deg, ${C.yellow}, rgba(180,83,9,0.4))`, borderRadius: 3, transition: "width 0.4s ease" }} />
                 </div>
                 <div style={{ fontSize: 11, color: C.textDim, marginTop: 7 }}>
                   {coverage < 60 ? "Add more docs or screenshots to improve context quality." : coverage < 80 ? "Good coverage. More context = more accurate PRDs." : "Excellent context coverage. Vantage has strong product knowledge."}
@@ -232,7 +232,7 @@ export default function OnboardingPage() {
               <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "20px 22px", marginBottom: 20 }}>
                 <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: "12px 16px" }}>
                   <span style={{ fontSize: 12, color: C.textDim, alignSelf: "center" }}>Product name</span>
-                  <input value={editedName} onChange={e => setEditedName(e.target.value)} style={{ fontSize: 13, color: C.text, background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`, borderRadius: 6, padding: "7px 10px", fontFamily: "inherit" }} />
+                  <input value={editedName} onChange={e => setEditedName(e.target.value)} style={{ fontSize: 13, color: C.text, background: "rgba(0,0,0,0.04)", border: `1px solid ${C.border}`, borderRadius: 6, padding: "7px 10px", fontFamily: "inherit" }} />
                   <span style={{ fontSize: 12, color: C.textDim, alignSelf: "center" }}>Category</span>
                   <span style={{ fontSize: 13, color: C.textMuted }}>{EXTRACTED.category}</span>
                   <span style={{ fontSize: 12, color: C.textDim, alignSelf: "center" }}>Target audience</span>
@@ -243,14 +243,14 @@ export default function OnboardingPage() {
                   </div>
                   <span style={{ fontSize: 12, color: C.textDim }}>Tech stack</span>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                    {EXTRACTED.techStack.map(t => <span key={t} style={{ fontSize: 11, padding: "3px 8px", background: "rgba(255,255,255,0.06)", color: C.textMuted, borderRadius: 4, border: `1px solid ${C.border}` }}>{t}</span>)}
+                    {EXTRACTED.techStack.map(t => <span key={t} style={{ fontSize: 11, padding: "3px 8px", background: "rgba(0,0,0,0.06)", color: C.textMuted, borderRadius: 4, border: `1px solid ${C.border}` }}>{t}</span>)}
                   </div>
                 </div>
               </div>
 
               <div style={{ marginBottom: 24 }}>
-                <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.65)", marginBottom: 8 }}>Product description</div>
-                <textarea value={editedDesc} onChange={e => setEditedDesc(e.target.value)} rows={3} style={{ width: "100%", padding: "11px 14px", fontSize: 13, color: C.text, background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`, borderRadius: 8, fontFamily: "inherit", lineHeight: 1.6, resize: "vertical" }} />
+                <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(0,0,0,0.65)", marginBottom: 8 }}>Product description</div>
+                <textarea value={editedDesc} onChange={e => setEditedDesc(e.target.value)} rows={3} style={{ width: "100%", padding: "11px 14px", fontSize: 13, color: C.text, background: "rgba(0,0,0,0.04)", border: `1px solid ${C.border}`, borderRadius: 8, fontFamily: "inherit", lineHeight: 1.6, resize: "vertical" }} />
               </div>
 
               <div style={{ display: "flex", gap: 10 }}>
@@ -270,16 +270,16 @@ export default function OnboardingPage() {
               </div>
 
               {/* Context summary */}
-              <div style={{ background: "rgba(62,207,142,0.05)", border: "1px solid rgba(62,207,142,0.2)", borderRadius: 10, padding: "12px 16px", marginBottom: 22, display: "flex", gap: 10, alignItems: "center" }}>
+              <div style={{ background: "rgba(5,150,105,0.05)", border: "1px solid rgba(5,150,105,0.15))", borderRadius: 10, padding: "12px 16px", marginBottom: 22, display: "flex", gap: 10, alignItems: "center" }}>
                 <span style={{ fontSize: 14 }}>✓</span>
                 <div>
-                  <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(62,207,142,0.85)" }}>{editedName} · {coverage}% context coverage</span>
+                  <span style={{ fontSize: 13, fontWeight: 500, color: "#059669" }}>{editedName} · {coverage}% context coverage</span>
                   <div style={{ fontSize: 11, color: C.textDim, marginTop: 2 }}>{EXTRACTED.pages} web pages · {docs.length} doc{docs.length !== 1 ? "s" : ""} · {screenshots.length} screenshot{screenshots.length !== 1 ? "s" : ""}</div>
                 </div>
               </div>
 
               <form onSubmit={handleGeneratePRD}>
-                <textarea value={idea} onChange={e => setIdea(e.target.value)} rows={4} placeholder={`e.g. "Redesign the checkout flow to reduce payment drop-off from 34% to under 22%"`} style={{ width: "100%", padding: "13px 16px", fontSize: 14, color: C.text, background: "rgba(255,255,255,0.05)", border: `1px solid ${C.border}`, borderRadius: 10, fontFamily: "inherit", lineHeight: 1.65, resize: "vertical", marginBottom: 12 }} onFocus={e => e.currentTarget.style.borderColor = "rgba(100,86,230,0.45)"} onBlur={e => e.currentTarget.style.borderColor = C.border} />
+                <textarea value={idea} onChange={e => setIdea(e.target.value)} rows={4} placeholder={`e.g. "Redesign the checkout flow to reduce payment drop-off from 34% to under 22%"`} style={{ width: "100%", padding: "13px 16px", fontSize: 14, color: C.text, background: "rgba(0,0,0,0.05)", border: `1px solid ${C.border}`, borderRadius: 10, fontFamily: "inherit", lineHeight: 1.65, resize: "vertical", marginBottom: 12 }} onFocus={e => e.currentTarget.style.borderColor = "rgba(87,70,232,0.45)"} onBlur={e => e.currentTarget.style.borderColor = C.border} />
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
                   {["Redesign the checkout flow","Rebuild the onboarding experience","Add mobile push notifications","Launch a referral program"].map(s => (
                     <button key={s} type="button" onClick={() => setIdea(s)} style={{ fontSize: 11, padding: "6px 12px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, color: C.textMuted, cursor: "pointer", fontFamily: "inherit" }}>{s}</button>
@@ -302,7 +302,7 @@ export default function OnboardingPage() {
       <style>{`
         @keyframes vpulse { 0%,100%{transform:scale(0.7);opacity:0.3} 50%{transform:scale(1.15);opacity:1} }
         input:focus,textarea:focus,button:focus { outline: none; }
-        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
       `}</style>
     </div>
   );
