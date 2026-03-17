@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useRef, FormEvent, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import {
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 const C = {
   bg: "#fafafa", surface: "rgba(0,0,0,0.02)", border: "rgba(0,0,0,0.08)",
@@ -588,6 +592,121 @@ function TicketsBoard({ onTicketClick, selectedId }: { onTicketClick:(t:Ticket)=
   );
 }
 
+/* ══ PROGRESS VIEW (management) ══ */
+function ProgressView() {
+  const waves = [
+    { label:"Wave 1 · Foundation", total:2, done:2, pts:5, ptsDone:5, status:"done" as const },
+    { label:"Wave 2 · Payment", total:3, done:1, pts:11, ptsDone:5, status:"active" as const },
+    { label:"Wave 3 · Conversion", total:4, done:0, pts:10, ptsDone:0, status:"upcoming" as const },
+  ];
+  const blocked = [
+    { id:"VAN-006", title:"Autofill shipping for logged-in users", reason:"Needs API design review from backend team", since:"2 days" },
+  ];
+  const statusRows = [
+    { label:"Done", count:3, pts:10, color:C.green },
+    { label:"In Progress", count:2, pts:8, color:C.purple },
+    { label:"Blocked", count:1, pts:3, color:C.red },
+    { label:"Not started", count:3, pts:7, color:C.textDim },
+  ];
+  const totalPts = 28, donePts = 10;
+
+  return (
+    <div style={{flex:1,overflowY:"auto",padding:"24px 28px",height:"100%"}}>
+      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:24}}>
+        <h2 style={{fontSize:16,fontWeight:600,color:C.text,margin:0}}>Sprint Progress</h2>
+        <span style={{fontSize:11,background:"rgba(5,150,105,0.08)",color:C.green,border:`1px solid rgba(5,150,105,0.2)`,borderRadius:6,padding:"2px 8px"}}>Checkout Redesign · Week 3</span>
+      </div>
+
+      {/* Summary row */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:24}}>
+        {[
+          { label:"Total tickets", value:"9", sub:"across 3 waves" },
+          { label:"Points done", value:`${donePts}/${totalPts}`, sub:"36% complete" },
+          { label:"Velocity", value:"8 pts/wk", sub:"on track" },
+          { label:"ETA", value:"2 weeks", sub:"Apr 2 at current pace" },
+        ].map(s=>(
+          <div key={s.label} style={{background:"#ffffff",border:`1px solid ${C.border}`,borderRadius:10,padding:"14px 16px"}}>
+            <div style={{fontSize:11,color:C.textDim,marginBottom:8}}>{s.label}</div>
+            <div style={{fontSize:20,fontWeight:700,color:C.text,letterSpacing:"-0.4px",marginBottom:3}}>{s.value}</div>
+            <div style={{fontSize:11,color:C.textMuted}}>{s.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{display:"grid",gridTemplateColumns:"3fr 2fr",gap:16,marginBottom:20}}>
+        {/* Wave progress */}
+        <div style={{background:"#ffffff",border:`1px solid ${C.border}`,borderRadius:12,padding:"18px 20px"}}>
+          <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:16}}>Wave completion</div>
+          <div style={{display:"flex",flexDirection:"column",gap:14}}>
+            {waves.map(w=>{
+              const pct = Math.round((w.done/w.total)*100);
+              const waveColor = w.status==="done"?C.green:w.status==="active"?C.purple:C.textDim;
+              return (
+                <div key={w.label}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <span style={{fontSize:12,color:C.textMuted}}>{w.label}</span>
+                      <span style={{fontSize:10,padding:"1px 6px",background:w.status==="done"?"rgba(5,150,105,0.08)":w.status==="active"?"rgba(87,70,232,0.08)":"rgba(0,0,0,0.04)",color:waveColor,borderRadius:4}}>{w.status==="done"?"Done":w.status==="active"?"Active":"Upcoming"}</span>
+                    </div>
+                    <span style={{fontSize:12,fontWeight:600,color:C.text}}>{w.done}/{w.total} tickets · {w.ptsDone}/{w.pts}pts</span>
+                  </div>
+                  <div style={{height:6,background:"rgba(0,0,0,0.05)",borderRadius:3}}>
+                    <div style={{height:"100%",width:`${pct}%`,background:waveColor,borderRadius:3,transition:"width 0.5s ease"}}/>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Status breakdown */}
+        <div style={{background:"#ffffff",border:`1px solid ${C.border}`,borderRadius:12,padding:"18px 20px"}}>
+          <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:16}}>Status breakdown</div>
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {statusRows.map(s=>(
+              <div key={s.label} style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{width:8,height:8,borderRadius:"50%",background:s.color,flexShrink:0}}/>
+                <span style={{fontSize:12,color:C.textMuted,flex:1}}>{s.label}</span>
+                <span style={{fontSize:12,fontWeight:600,color:C.text}}>{s.count}</span>
+                <span style={{fontSize:11,color:C.textDim,width:42,textAlign:"right"}}>{s.pts}pts</span>
+              </div>
+            ))}
+          </div>
+          <div style={{borderTop:`1px solid ${C.border}`,marginTop:12,paddingTop:12}}>
+            <div style={{height:6,background:"rgba(0,0,0,0.05)",borderRadius:3,overflow:"hidden"}}>
+              <div style={{display:"flex",height:"100%"}}>
+                <div style={{width:`${(10/28)*100}%`,background:C.green}}/>
+                <div style={{width:`${(8/28)*100}%`,background:C.purple}}/>
+                <div style={{width:`${(3/28)*100}%`,background:C.red}}/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Blocked tickets */}
+      {blocked.length>0&&(
+        <div style={{background:"rgba(220,38,38,0.03)",border:`1px solid rgba(220,38,38,0.15)`,borderRadius:12,padding:"16px 20px"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
+            <span style={{fontSize:13,fontWeight:600,color:C.red}}>Blocked</span>
+            <span style={{fontSize:11,background:"rgba(220,38,38,0.08)",color:C.red,borderRadius:4,padding:"1px 6px"}}>{blocked.length}</span>
+          </div>
+          {blocked.map(b=>(
+            <div key={b.id} style={{display:"flex",alignItems:"flex-start",gap:14}}>
+              <span style={{fontSize:11,fontWeight:700,color:C.purple,flexShrink:0,paddingTop:1}}>{b.id}</span>
+              <div style={{flex:1}}>
+                <div style={{fontSize:12,fontWeight:500,color:C.text,marginBottom:3}}>{b.title}</div>
+                <div style={{fontSize:11,color:C.textMuted}}>⚠ {b.reason}</div>
+              </div>
+              <span style={{fontSize:11,color:C.textDim,flexShrink:0}}>Blocked {b.since}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ══ RESEARCH VIEW ══ */
 function ResearchView({ messages, onSend, loading, onInsert }: { messages:Message[]; onSend:(q:string)=>void; loading:boolean; onInsert:(r:string)=>void }) {
   const [input,setInput]=useState("");
@@ -910,11 +1029,12 @@ function Sidebar({ activeTab, onTabChange }: { activeTab: string; onTabChange: (
       ))}
       <div style={{borderTop:`1px solid ${C.border}`,margin:"10px 0 6px"}}/>
       <SL>Views</SL>
-      {[{k:"prd",l:"PRD"},{k:"tickets",l:"Tickets"},{k:"research",l:"Research"},{k:"figma",l:"Figma"},{k:"integrations",l:"Integrations"}].map(v=>(
+      {[{k:"prd",l:"PRD"},{k:"tickets",l:"Tickets"},{k:"research",l:"Research"},{k:"figma",l:"Figma"},{k:"integrations",l:"Integrations"},{k:"metrics",l:"Metrics"}].map(v=>(
         <div key={v.k} onClick={()=>onTabChange(v.k)} style={{fontSize:12,padding:"6px 9px",borderRadius:6,color:activeTab===v.k?"rgba(0,0,0,0.9)":"rgba(0,0,0,0.35)",background:activeTab===v.k?C.purpleBg:"transparent",cursor:"pointer",fontWeight:activeTab===v.k?500:400,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <span>{v.l}</span>
           {v.k==="figma"&&<span style={{fontSize:9,color:C.purpleLight,background:"rgba(139,127,245,0.15)",borderRadius:3,padding:"1px 4px"}}>V1</span>}
           {v.k==="integrations"&&<span style={{fontSize:9,color:C.green,background:"rgba(62,207,142,0.12)",borderRadius:3,padding:"1px 4px"}}>4 MVP</span>}
+          {v.k==="metrics"&&<span style={{fontSize:9,color:C.green,background:"rgba(5,150,105,0.1)",borderRadius:3,padding:"1px 4px"}}>Live</span>}
         </div>
       ))}
       <div style={{flex:1}}/>
@@ -951,6 +1071,316 @@ function VLogo({ size }: { size: number }) {
         <path d="M3 12L8 4L13 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M5.5 9H10.5" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
       </svg>
+    </div>
+  );
+}
+
+/* ══ TICKETS TAB CONTENT (Board + Progress toggle) ══ */
+function TicketsTabContent({ selectedTicket, onTicketClick, onClearTicket }: { selectedTicket:Ticket|null; onTicketClick:(t:Ticket)=>void; onClearTicket:()=>void }) {
+  const [view, setView] = useState<"board"|"progress">("board");
+  return (
+    <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+      {/* Sub-nav */}
+      <div style={{padding:"10px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+        {([{k:"board",l:"Board"},{k:"progress",l:"Progress"}] as const).map(v=>(
+          <button key={v.k} onClick={()=>{setView(v.k);if(v.k==="progress")onClearTicket();}} style={{fontSize:12,padding:"4px 12px",borderRadius:6,background:view===v.k?C.purpleBg:"transparent",border:`1px solid ${view===v.k?C.purpleBorder:"transparent"}`,color:view===v.k?C.purpleLight:C.textDim,cursor:"pointer",fontFamily:"inherit",fontWeight:view===v.k?500:400}}>
+            {v.l}
+          </button>
+        ))}
+        <span style={{fontSize:11,color:C.textDim,marginLeft:8}}>{view==="board"?"Drag to move across waves · Click to see agent prompt":"Sprint tracking for stakeholders"}</span>
+      </div>
+      <div style={{flex:1,display:"flex",overflow:"hidden"}}>
+        {view==="board"&&<><TicketsBoard onTicketClick={onTicketClick} selectedId={selectedTicket?.id??null}/>{selectedTicket&&<TicketDetail ticket={selectedTicket} onClose={onClearTicket}/>}</>}
+        {view==="progress"&&<ProgressView/>}
+      </div>
+    </div>
+  );
+}
+
+/* ══ METRICS VIEW — Telemetry Loop ══ */
+
+const TELEMETRY_QUERIES: Record<string, {
+  kpis: { label:string; value:string; delta:string; good:boolean; sub:string }[];
+  charts: { title:string; type:"area"|"bar"; color:string; data:Record<string,string|number>[] }[];
+}> = {
+  conversion: {
+    kpis:[
+      {label:"Completion rate",value:"81%",delta:"+15pp",good:true,sub:"vs 66% pre-launch"},
+      {label:"Avg checkout time",value:"2.1 min",delta:"−50%",good:true,sub:"was 4.2 min"},
+      {label:"Mobile conversion",value:"67%",delta:"+26pp",good:true,sub:"desktop 91%"},
+    ],
+    charts:[
+      {title:"Checkout conversion rate — last 14 days",type:"area",color:"#5746E8",data:[
+        {d:"Mar 3",v:62},{d:"Mar 5",v:65},{d:"Mar 7",v:68},{d:"Mar 9",v:71},{d:"Mar 11",v:74},{d:"Mar 13",v:76},{d:"Mar 15",v:79},{d:"Mar 17",v:81},
+      ]},
+      {title:"Conversion by device",type:"bar",color:"#5746E8",data:[
+        {d:"Desktop",v:91},{d:"Mobile",v:67},{d:"Tablet",v:58},
+      ]},
+    ],
+  },
+  abandonment: {
+    kpis:[
+      {label:"Cart abandonment",value:"19%",delta:"−15pp",good:true,sub:"was 34%"},
+      {label:"Payment drop-off",value:"8%",delta:"−9pp",good:true,sub:"biggest gain"},
+      {label:"Shipping step",value:"9%",delta:"−3pp",good:true,sub:"still highest risk"},
+    ],
+    charts:[
+      {title:"Abandonment rate trend — 5 weeks",type:"area",color:"#dc2626",data:[
+        {d:"W-5",v:36},{d:"W-4",v:34},{d:"W-3",v:28},{d:"W-2",v:23},{d:"W-1",v:20},{d:"Now",v:19},
+      ]},
+      {title:"Drop-off by checkout step (%)",type:"bar",color:"#b45309",data:[
+        {d:"Cart",v:5},{d:"Shipping",v:9},{d:"Payment",v:8},{d:"Confirm",v:3},
+      ]},
+    ],
+  },
+  wallet: {
+    kpis:[
+      {label:"Apple Pay adoption",value:"24%",delta:"+24pp",good:true,sub:"of completions"},
+      {label:"Google Pay",value:"11%",delta:"+11pp",good:true,sub:"of completions"},
+      {label:"Card payments",value:"59%",delta:"−35pp",good:true,sub:"shifting to wallets"},
+    ],
+    charts:[
+      {title:"Wallet adoption growth — weekly",type:"area",color:"#059669",data:[
+        {d:"Week 1",v:0},{d:"Week 2",v:12},{d:"Week 3",v:21},{d:"Week 4",v:31},{d:"Week 5",v:35},
+      ]},
+      {title:"Payment method split (%)",type:"bar",color:"#5746E8",data:[
+        {d:"Card",v:59},{d:"Apple Pay",v:24},{d:"Google Pay",v:11},{d:"Other",v:6},
+      ]},
+    ],
+  },
+  default: {
+    kpis:[
+      {label:"Active users (7d)",value:"1,840",delta:"+48%",good:true,sub:"vs prev week"},
+      {label:"Sessions → purchase",value:"25%",delta:"+8pp",good:true,sub:"funnel rate"},
+      {label:"Avg session",value:"3.4 min",delta:"−0.8 min",good:true,sub:"faster checkout"},
+    ],
+    charts:[
+      {title:"Weekly active users",type:"area",color:"#5746E8",data:[
+        {d:"W-5",v:1240},{d:"W-4",v:1380},{d:"W-3",v:1520},{d:"W-2",v:1710},{d:"W-1",v:1840},
+      ]},
+      {title:"Funnel events — last 7 days (%)",type:"bar",color:"#059669",data:[
+        {d:"Page view",v:100},{d:"Add to cart",v:44},{d:"Checkout",v:31},{d:"Purchase",v:25},
+      ]},
+    ],
+  },
+};
+
+function getQueryKey(q:string):string {
+  const l=q.toLowerCase();
+  if(/conversion|completion|checkout rate/.test(l)) return "conversion";
+  if(/abandon|drop.?off/.test(l)) return "abandonment";
+  if(/apple.?pay|google.?pay|wallet|payment method/.test(l)) return "wallet";
+  if(/revenue|stripe|gmv|cost/.test(l)) return "no_data:Revenue data requires a Stripe webhook integration.";
+  if(/bug|qa|error|crash|sentry/.test(l)) return "no_data:QA error tracking requires Sentry or Datadog.";
+  return "default";
+}
+
+const TICKET_PROGRESS = [
+  {wave:"Wave 1 · Foundation",done:2,total:2,pts:5,ptsDone:5,status:"done"},
+  {wave:"Wave 2 · Payment",done:1,total:3,pts:11,ptsDone:5,status:"active"},
+  {wave:"Wave 3 · Conversion",done:0,total:4,pts:10,ptsDone:0,status:"upcoming"},
+];
+
+function MetricsView() {
+  const [input, setInput] = useState("");
+  const [queryKey, setQueryKey] = useState<string|null>(null);
+  const [loading, setLoading] = useState(false);
+  const [ticketCreated, setTicketCreated] = useState(false);
+  const suggestions = [
+    "Show checkout conversion","What's our cart abandonment?",
+    "Show Apple Pay adoption","Revenue this sprint","QA error rate",
+  ];
+
+  function runQuery(q:string) {
+    if(!q.trim()) return;
+    setLoading(true); setQueryKey(null); setTicketCreated(false);
+    setTimeout(()=>{ setQueryKey(getQueryKey(q)); setLoading(false); }, 1400);
+  }
+
+  const isNoData = queryKey?.startsWith("no_data:");
+  const noDataMsg = isNoData ? queryKey!.split(":").slice(1).join(":") : "";
+  const data = (!isNoData && queryKey) ? (TELEMETRY_QUERIES[queryKey] ?? TELEMETRY_QUERIES.default) : null;
+
+  const CustomTooltip = ({ active, payload, label }: { active?:boolean; payload?:{value:number}[]; label?:string }) => {
+    if(active && payload && payload.length) return (
+      <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:8,padding:"8px 12px",fontSize:12,boxShadow:"0 4px 16px rgba(0,0,0,0.08)"}}>
+        <p style={{color:C.textDim,margin:"0 0 2px"}}>{label}</p>
+        <p style={{color:C.text,fontWeight:600,margin:0}}>{payload[0].value}{typeof payload[0].value==="number"&&payload[0].value<=100?"%":""}</p>
+      </div>
+    );
+    return null;
+  };
+
+  return (
+    <div style={{flex:1,display:"flex",flexDirection:"column",height:"100%",overflow:"hidden",background:"#f7f7f8"}}>
+      {/* Query bar */}
+      <div style={{padding:"16px 24px 12px",borderBottom:`1px solid ${C.border}`,background:"#ffffff",flexShrink:0}}>
+        <div style={{display:"flex",gap:8,marginBottom:10}}>
+          <div style={{position:"relative",flex:1}}>
+            <span style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",fontSize:14,pointerEvents:"none"}}>🔍</span>
+            <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&runQuery(input)} placeholder="Ask anything — e.g. Show checkout conversion by device…" style={{width:"100%",padding:"10px 14px 10px 36px",fontSize:13,color:C.text,background:"#fafafa",border:`1px solid ${C.border}`,borderRadius:10,fontFamily:"inherit",boxSizing:"border-box"}} onFocus={e=>{e.currentTarget.style.borderColor="rgba(87,70,232,0.45)";e.currentTarget.style.background="#fff";}} onBlur={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.background="#fafafa";}}/>
+          </div>
+          <button onClick={()=>runQuery(input)} style={{padding:"10px 20px",background:"linear-gradient(135deg,#5746E8,#7C5FF5)",border:"none",borderRadius:10,color:"#fff",cursor:"pointer",fontSize:13,fontFamily:"inherit",fontWeight:500,whiteSpace:"nowrap",boxShadow:"0 2px 8px rgba(87,70,232,0.25)"}}>Generate dashboard</button>
+        </div>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          {suggestions.map(s=>(
+            <button key={s} onClick={()=>{setInput(s);runQuery(s);}} style={{fontSize:11,padding:"4px 12px",background:"rgba(0,0,0,0.04)",border:`1px solid ${C.border}`,borderRadius:20,color:C.textMuted,cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"}}
+              onMouseEnter={e=>{e.currentTarget.style.background="rgba(87,70,232,0.07)";e.currentTarget.style.color=C.purple;e.currentTarget.style.borderColor="rgba(87,70,232,0.25)";}}
+              onMouseLeave={e=>{e.currentTarget.style.background="rgba(0,0,0,0.04)";e.currentTarget.style.color=C.textMuted;e.currentTarget.style.borderColor=C.border;}}
+            >{s}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Body */}
+      <div style={{flex:1,overflowY:"auto",padding:"24px"}}>
+
+        {/* Always-visible: ticket progress strip */}
+        <div style={{background:"#ffffff",border:`1px solid ${C.border}`,borderRadius:14,padding:"18px 22px",marginBottom:20}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+            <div>
+              <span style={{fontSize:13,fontWeight:600,color:C.text}}>Sprint progress</span>
+              <span style={{fontSize:11,color:C.textDim,marginLeft:10}}>Checkout Redesign · Week 3 of 5</span>
+            </div>
+            <div style={{display:"flex",gap:16}}>
+              {[{l:"Done",v:"3",c:C.green},{l:"In progress",v:"2",c:C.purple},{l:"Blocked",v:"1",c:C.red},{l:"Remaining",v:"3",c:C.textDim}].map(s=>(
+                <div key={s.l} style={{textAlign:"center"}}>
+                  <div style={{fontSize:18,fontWeight:700,color:s.c,letterSpacing:"-0.5px"}}>{s.v}</div>
+                  <div style={{fontSize:10,color:C.textDim}}>{s.l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {TICKET_PROGRESS.map(w=>{
+              const pct=(w.done/w.total)*100;
+              const wc=w.status==="done"?C.green:w.status==="active"?C.purple:"rgba(0,0,0,0.12)";
+              return (
+                <div key={w.wave} style={{display:"flex",alignItems:"center",gap:14}}>
+                  <span style={{fontSize:11,color:C.textMuted,width:170,flexShrink:0}}>{w.wave}</span>
+                  <div style={{flex:1,height:6,background:"rgba(0,0,0,0.05)",borderRadius:3,overflow:"hidden"}}>
+                    <div style={{height:"100%",width:`${pct}%`,background:w.status==="done"?"linear-gradient(90deg,#059669,#34d399)":w.status==="active"?"linear-gradient(90deg,#5746E8,#9B72F5)":"transparent",borderRadius:3,transition:"width 0.6s ease"}}/>
+                  </div>
+                  <span style={{fontSize:11,color:wc,fontWeight:500,width:80,textAlign:"right",flexShrink:0}}>{w.done}/{w.total} tickets · {w.ptsDone}pts</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* KPI cards — always visible */}
+        {!loading&&!queryKey&&(
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:20}}>
+            {[
+              {label:"Checkout completion",value:"81%",delta:"+15pp",sub:"vs 66% pre-launch",grad:"linear-gradient(135deg,#5746E8 0%,#9B72F5 100%)"},
+              {label:"Cart abandonment",value:"19%",delta:"−15pp",sub:"was 34%",grad:"linear-gradient(135deg,#059669 0%,#34d399 100%)"},
+              {label:"Apple Pay adoption",value:"31%",delta:"+31pp",sub:"of all checkouts",grad:"linear-gradient(135deg,#b45309 0%,#f59e0b 100%)"},
+            ].map(k=>(
+              <div key={k.label} style={{background:k.grad,borderRadius:14,padding:"20px 22px",color:"#fff",position:"relative",overflow:"hidden"}}>
+                <div style={{position:"absolute",top:-20,right:-20,width:80,height:80,borderRadius:"50%",background:"rgba(255,255,255,0.08)"}}/>
+                <div style={{fontSize:11,opacity:0.8,marginBottom:10}}>{k.label}</div>
+                <div style={{fontSize:32,fontWeight:700,letterSpacing:"-1px",marginBottom:4}}>{k.value}</div>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:12,fontWeight:600,background:"rgba(255,255,255,0.2)",padding:"2px 8px",borderRadius:20}}>{k.delta}</span>
+                  <span style={{fontSize:11,opacity:0.7}}>{k.sub}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Query result KPIs */}
+        {!loading&&data&&(
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:20}}>
+            {data.kpis.map(k=>(
+              <div key={k.label} style={{background:"#ffffff",border:`1px solid ${C.border}`,borderRadius:14,padding:"18px 20px",position:"relative",overflow:"hidden"}}>
+                <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:k.good?"linear-gradient(90deg,#5746E8,#9B72F5)":"linear-gradient(90deg,#dc2626,#f87171)",borderRadius:"14px 14px 0 0"}}/>
+                <div style={{fontSize:11,color:C.textDim,marginBottom:10,marginTop:2}}>{k.label}</div>
+                <div style={{fontSize:28,fontWeight:700,color:C.text,letterSpacing:"-0.8px",marginBottom:6}}>{k.value}</div>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:11,fontWeight:600,color:k.good?C.green:C.red,background:k.good?"rgba(5,150,105,0.08)":"rgba(220,38,38,0.08)",padding:"2px 8px",borderRadius:20}}>{k.delta}</span>
+                  <span style={{fontSize:11,color:C.textDim}}>{k.sub}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Loading */}
+        {loading&&(
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"60px 0",gap:14}}>
+            <div style={{display:"flex",gap:7}}>{[0,1,2].map(i=><div key={i} style={{width:9,height:9,borderRadius:"50%",background:C.purple,animation:`vpulse 1.2s ease-in-out ${i*0.2}s infinite`}}/>)}</div>
+            <p style={{fontSize:13,color:C.textMuted}}>Querying connected data sources…</p>
+          </div>
+        )}
+
+        {/* Recharts */}
+        {!loading&&data&&(
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+            {data.charts.map((chart,i)=>(
+              <div key={i} style={{background:"#ffffff",border:`1px solid ${C.border}`,borderRadius:14,padding:"18px 20px"}}>
+                <div style={{fontSize:12,fontWeight:600,color:C.text,marginBottom:16}}>{chart.title}</div>
+                <ResponsiveContainer width="100%" height={180}>
+                  {chart.type==="area"?(
+                    <AreaChart data={chart.data} margin={{top:4,right:4,bottom:0,left:-24}}>
+                      <defs>
+                        <linearGradient id={`grad${i}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={chart.color} stopOpacity={0.15}/>
+                          <stop offset="95%" stopColor={chart.color} stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false}/>
+                      <XAxis dataKey="d" tick={{fontSize:10,fill:C.textDim as string}} axisLine={false} tickLine={false}/>
+                      <YAxis tick={{fontSize:10,fill:C.textDim as string}} axisLine={false} tickLine={false}/>
+                      <Tooltip content={<CustomTooltip/>}/>
+                      <Area type="monotone" dataKey="v" stroke={chart.color} strokeWidth={2.5} fill={`url(#grad${i})`} dot={{fill:chart.color,r:3,strokeWidth:0}} activeDot={{r:5,strokeWidth:0}}/>
+                    </AreaChart>
+                  ):(
+                    <BarChart data={chart.data} margin={{top:4,right:4,bottom:0,left:-24}} barSize={28}>
+                      <defs>
+                        <linearGradient id={`bgrad${i}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={chart.color} stopOpacity={0.9}/>
+                          <stop offset="100%" stopColor={chart.color} stopOpacity={0.5}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false}/>
+                      <XAxis dataKey="d" tick={{fontSize:10,fill:C.textDim as string}} axisLine={false} tickLine={false}/>
+                      <YAxis tick={{fontSize:10,fill:C.textDim as string}} axisLine={false} tickLine={false}/>
+                      <Tooltip content={<CustomTooltip/>}/>
+                      <Bar dataKey="v" fill={`url(#bgrad${i})`} radius={[4,4,0,0]}/>
+                    </BarChart>
+                  )}
+                </ResponsiveContainer>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* No data */}
+        {!loading&&isNoData&&(
+          <div style={{maxWidth:500,margin:"0 auto",paddingTop:8}}>
+            <div style={{background:"rgba(220,38,38,0.04)",border:"1px solid rgba(220,38,38,0.12)",borderRadius:14,padding:"22px 26px",marginBottom:16}}>
+              <div style={{fontSize:13,fontWeight:600,color:C.red,marginBottom:8}}>Data not tracked yet</div>
+              <p style={{fontSize:13,color:C.textMuted,lineHeight:1.65,margin:0}}>{noDataMsg}</p>
+            </div>
+            {!ticketCreated?(
+              <button onClick={()=>setTicketCreated(true)} style={{width:"100%",padding:"12px",background:"linear-gradient(135deg,#5746E8,#7C5FF5)",border:"none",borderRadius:10,color:"#fff",cursor:"pointer",fontSize:13,fontFamily:"inherit",fontWeight:500,boxShadow:"0 4px 12px rgba(87,70,232,0.2)"}}>
+                Create tracking ticket for engineering →
+              </button>
+            ):(
+              <div style={{background:"rgba(5,150,105,0.06)",border:"1px solid rgba(5,150,105,0.2)",borderRadius:12,padding:"16px 20px",display:"flex",alignItems:"center",gap:12}}>
+                <div style={{width:32,height:32,borderRadius:"50%",background:C.green,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+                <div>
+                  <div style={{fontSize:13,fontWeight:600,color:C.green}}>Ticket created — VAN-010</div>
+                  <div style={{fontSize:11,color:C.textDim,marginTop:2}}>Add analytics tracking · Assigned to Engineering · Wave 4</div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1009,7 +1439,7 @@ function WorkspaceContent() {
         </div>
         <div style={{flex:1}}/>
         <div style={{display:"flex",gap:2}}>
-          {[{k:"prd",l:"PRD"},{k:"tickets",l:"Tickets"},{k:"research",l:"Research"},{k:"figma",l:"Figma"},{k:"integrations",l:"Integrations"}].map(t=>(
+          {[{k:"prd",l:"PRD"},{k:"tickets",l:"Tickets"},{k:"research",l:"Research"},{k:"figma",l:"Figma"},{k:"integrations",l:"Integrations"},{k:"metrics",l:"Metrics"}].map(t=>(
             <button key={t.k} onClick={()=>setActiveTab(t.k)} style={{fontSize:12,padding:"5px 11px",borderRadius:7,background:activeTab===t.k?C.purpleBg:"transparent",border:`1px solid ${activeTab===t.k?C.purpleBorder:"transparent"}`,color:activeTab===t.k?C.purpleLight:C.textDim,cursor:"pointer",fontFamily:"inherit",fontWeight:activeTab===t.k?500:400,transition:"all 0.15s"}}>{t.l}</button>
           ))}
         </div>
@@ -1040,12 +1470,13 @@ function WorkspaceContent() {
             <>
               {ticketsState==="generating"&&<TicketsGeneratingOverlay/>}
               {ticketsState==="idle"&&<div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column"}}><p style={{fontSize:14,color:C.textMuted,marginBottom:8}}>No tickets yet</p><p style={{fontSize:12,color:C.textDim,marginBottom:22}}>Go to the PRD tab and click "Generate Tickets"</p><button onClick={()=>setActiveTab("prd")} style={{fontSize:13,padding:"8px 18px",background:C.purple,border:"none",borderRadius:8,color:"#fff",cursor:"pointer",fontFamily:"inherit",fontWeight:500}}>Go to PRD →</button></div>}
-              {ticketsState==="done"&&(<><TicketsBoard onTicketClick={t=>setSelectedTicket(prev=>prev?.id===t.id?null:t)} selectedId={selectedTicket?.id??null}/>{selectedTicket&&<TicketDetail ticket={selectedTicket} onClose={()=>setSelectedTicket(null)}/>}</>)}
+              {ticketsState==="done"&&<TicketsTabContent selectedTicket={selectedTicket} onTicketClick={t=>setSelectedTicket(prev=>prev?.id===t.id?null:t)} onClearTicket={()=>setSelectedTicket(null)}/>}
             </>
           )}
           {activeTab==="research"&&<ResearchView messages={messages} onSend={handleQuery} loading={queryLoading} onInsert={handleInsert}/>}
           {activeTab==="figma"&&<FigmaView/>}
           {activeTab==="integrations"&&<IntegrationsView linearConnected={linearConnected} onLinearConnect={()=>setLinearConnected(true)}/>}
+          {activeTab==="metrics"&&<MetricsView/>}
         </div>
         {showVersionHistory&&(activeTab==="prd"||activeTab==="tickets")&&<VersionHistoryPanel onClose={()=>setShowVersionHistory(false)}/>}
       </div>

@@ -292,7 +292,7 @@ export default function Hero() {
           }}
         >
           <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#5746E8", flexShrink: 0 }} />
-          Now in early access
+          The PM who ships
         </div>
 
         {/* H1 */}
@@ -307,18 +307,17 @@ export default function Hero() {
           }}
           className="hero-h1"
         >
-          From idea to{" "}
+          From insight to{" "}
           <span
             style={{
-              background: "linear-gradient(135deg, #0f0f0f 0%, #5746E8 100%)",
+              background: "linear-gradient(135deg, #5746E8 0%, #8B6CF7 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
             }}
           >
-            execution plan
+            measured impact
           </span>
-          <br />in one workspace
         </h1>
 
         {/* Sub */}
@@ -327,13 +326,31 @@ export default function Hero() {
             fontSize: 17,
             color: "rgba(0,0,0,0.5)",
             lineHeight: 1.7,
-            maxWidth: 480,
-            margin: "0 auto 36px",
+            maxWidth: 500,
+            margin: "0 auto 28px",
           }}
         >
-          Describe what you&apos;re building. Vantage researches the market,
-          writes an evidence-backed PRD, and breaks it into dependency-aware tickets.
+          Vantage turns PMs into product builders — people who can research, plan, ship, and measure without waiting on anyone.
         </p>
+
+        {/* Flow strip */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, marginBottom: 36 }}>
+          {[
+            { label: "Research", color: "#5746E8" },
+            { label: "PRD", color: "#7C5FF5" },
+            { label: "Tickets", color: "#9B72F5" },
+            { label: "Ship", color: "#059669" },
+            { label: "Measure", color: "#b45309" },
+          ].map((step, i) => (
+            <div key={step.label} style={{ display: "flex", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 12px", background: `${step.color}08`, border: `1px solid ${step.color}20`, borderRadius: 20 }}>
+                <span style={{ width: 5, height: 5, borderRadius: "50%", background: step.color, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, fontWeight: 500, color: step.color }}>{step.label}</span>
+              </div>
+              {i < 4 && <span style={{ fontSize: 11, color: "rgba(0,0,0,0.2)", margin: "0 4px" }}>→</span>}
+            </div>
+          ))}
+        </div>
 
         {/* Input row */}
         <form
