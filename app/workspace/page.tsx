@@ -259,6 +259,27 @@ function ExportModal({ onClose, ticketCount }: { onClose: () => void; ticketCoun
   );
 }
 
+/* ══ COMPLIANCE DATA ══ */
+const COMPLIANCE_STANDARDS = [
+  { id:"gdpr",    name:"GDPR",       fullName:"General Data Protection Regulation",             region:"EU",     color:"#2563eb", bg:"rgba(37,99,235,0.06)",  border:"rgba(37,99,235,0.2)"  },
+  { id:"pci-dss", name:"PCI-DSS",    fullName:"Payment Card Industry Data Security Standard",   region:"Global", color:"#059669", bg:"rgba(5,150,105,0.06)",  border:"rgba(5,150,105,0.2)"  },
+  { id:"ccpa",    name:"CCPA",       fullName:"California Consumer Privacy Act",                region:"US-CA",  color:"#7c3aed", bg:"rgba(124,58,237,0.06)", border:"rgba(124,58,237,0.2)" },
+  { id:"wcag",    name:"WCAG 2.1 AA",fullName:"Web Content Accessibility Guidelines",           region:"Global", color:"#0891b2", bg:"rgba(8,145,178,0.06)",  border:"rgba(8,145,178,0.2)"  },
+  { id:"soc2",    name:"SOC 2",      fullName:"Service Organization Control 2",                 region:"US",     color:"#b45309", bg:"rgba(180,83,9,0.06)",   border:"rgba(180,83,9,0.2)"   },
+  { id:"hipaa",   name:"HIPAA",      fullName:"Health Insurance Portability and Accountability Act", region:"US",color:"rgba(0,0,0,0.35)",bg:"rgba(0,0,0,0.02)",border:"rgba(0,0,0,0.08)"   },
+];
+type ComplianceViolation = { standard:string; reqId:string; severity:"high"|"medium"|"low"; title:string; detail:string; fix:string };
+const COMPLIANCE_VIOLATIONS: ComplianceViolation[] = [
+  { standard:"gdpr",    reqId:"R7", severity:"high",   title:"Missing explicit consent for marketing emails",           detail:"GDPR Article 6 requires a lawful basis for processing. Abandoned cart emails require explicit opt-in consent — the act of adding items to a cart is not sufficient.", fix:"Add a consent checkbox at checkout: 'Send me order & offer updates' — distinct from transactional email opt-in." },
+  { standard:"gdpr",    reqId:"R1", severity:"medium", title:"Guest checkout lacks data processing disclosure",          detail:"GDPR Article 13 requires informing users what personal data is collected and how it is processed, even for guest (non-account) transactions.", fix:"Add a 'By continuing you agree to our Privacy Policy' notice at the guest checkout entry step." },
+  { standard:"ccpa",    reqId:"R7", severity:"high",   title:"No CCPA opt-out for abandoned cart email targeting",      detail:"CCPA §1798.120 requires a 'Do Not Sell or Share My Personal Information' opt-out. VAN-008 includes a CAN-SPAM unsubscribe link but not a CCPA opt-out.", fix:"Add a CCPA-compliant opt-out link in the abandoned cart email footer, separate from the unsubscribe link." },
+  { standard:"ccpa",    reqId:"R1", severity:"medium", title:"Guest data collection not disclosed at point of capture", detail:"CCPA §1798.100 requires informing consumers at the moment of data collection what categories of personal information are being collected.", fix:"Display a short data disclosure before the guest checkout form: list data categories collected (name, email, shipping address)." },
+  { standard:"wcag",    reqId:"R2", severity:"medium", title:"Wallet buttons need accessible names (ARIA labels)",      detail:"WCAG 2.1 SC 4.1.2 — Apple Pay and Google Pay buttons rendered as custom elements have no accessible name, making them unusable for screen reader users.", fix:"Add aria-label='Pay with Apple Pay' and aria-label='Pay with Google Pay' to wallet buttons in VAN-003 and VAN-004 acceptance criteria." },
+  { standard:"wcag",    reqId:"R6", severity:"medium", title:"Progress indicator needs ARIA progressbar role",          detail:"WCAG 2.1 SC 4.1.2 — the CheckoutProgress component (VAN-002) must use role='progressbar' with aria-valuenow, aria-valuemin, and aria-valuemax for screen reader announcements.", fix:"Update VAN-002 acceptance criteria: 'Progress bar exposes role=progressbar with correct ARIA value attributes at each step.'" },
+  { standard:"pci-dss", reqId:"R3", severity:"low",    title:"PCI-DSS badge shown without SAQ scope in PRD",           detail:"PCI-DSS Req 12.3 — displaying a PCI DSS badge implies certification. The PRD should reference the actual SAQ type and confirm that Stripe handles cardholder data within scope.", fix:"Add note to R3: 'Confirm PCI-DSS SAQ A compliance — Stripe handles all cardholder data; our servers never touch raw card numbers.'" },
+  { standard:"soc2",    reqId:"R8", severity:"medium", title:"A/B test data retention policy not specified",            detail:"SOC 2 CC6.7 — user behavioral data collected for R8's A/B test (tracked in Amplitude) requires a defined retention and anonymisation policy.", fix:"Add acceptance criterion to VAN-009: 'A/B test event data retained for 90 days per data retention policy, then anonymised per infosec guidelines.'" },
+];
+
 /* ══ IMPACT + COMPARE DATA ══ */
 const REQ_TICKET_MAP: Record<string,string[]> = {
   R1:["VAN-001","VAN-006"], R2:["VAN-003","VAN-004"], R3:["VAN-005"],
@@ -1227,7 +1248,7 @@ function VersionHistoryPanel({ onClose }: { onClose: () => void }) {
 }
 
 /* ══ SIDEBAR ══ */
-function Sidebar({ activeTab, onTabChange }: { activeTab: string; onTabChange: (t: string) => void }) {
+function Sidebar({ activeTab, onTabChange, complianceAlerts }: { activeTab: string; onTabChange: (t: string) => void; complianceAlerts: number }) {
   return (
     <div style={{width:196,borderRight:`1px solid ${C.border}`,padding:"13px 10px 16px",display:"flex",flexDirection:"column",gap:3,flexShrink:0,overflowY:"auto"}}>
       <div style={{display:"flex",alignItems:"center",gap:8,padding:"3px 8px",marginBottom:18}}>
@@ -1241,12 +1262,13 @@ function Sidebar({ activeTab, onTabChange }: { activeTab: string; onTabChange: (
       ))}
       <div style={{borderTop:`1px solid ${C.border}`,margin:"10px 0 6px"}}/>
       <SL>Views</SL>
-      {[{k:"prd",l:"PRD"},{k:"tickets",l:"Tickets"},{k:"research",l:"Research"},{k:"figma",l:"Figma"},{k:"integrations",l:"Integrations"},{k:"metrics",l:"Metrics"}].map(v=>(
+      {[{k:"prd",l:"PRD"},{k:"tickets",l:"Tickets"},{k:"research",l:"Research"},{k:"figma",l:"Figma"},{k:"integrations",l:"Integrations"},{k:"metrics",l:"Metrics"},{k:"compliance",l:"Compliance"}].map(v=>(
         <div key={v.k} onClick={()=>onTabChange(v.k)} style={{fontSize:12,padding:"6px 9px",borderRadius:6,color:activeTab===v.k?"rgba(0,0,0,0.9)":"rgba(0,0,0,0.35)",background:activeTab===v.k?C.purpleBg:"transparent",cursor:"pointer",fontWeight:activeTab===v.k?500:400,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <span>{v.l}</span>
           {v.k==="figma"&&<span style={{fontSize:9,color:C.purpleLight,background:"rgba(139,127,245,0.15)",borderRadius:3,padding:"1px 4px"}}>V1</span>}
           {v.k==="integrations"&&<span style={{fontSize:9,color:C.green,background:"rgba(62,207,142,0.12)",borderRadius:3,padding:"1px 4px"}}>4 MVP</span>}
           {v.k==="metrics"&&<span style={{fontSize:9,color:C.green,background:"rgba(5,150,105,0.1)",borderRadius:3,padding:"1px 4px"}}>Live</span>}
+          {v.k==="compliance"&&complianceAlerts>0&&<span style={{fontSize:9,color:"#fff",background:C.red,borderRadius:10,padding:"1px 5px",fontWeight:600}}>{complianceAlerts}</span>}
         </div>
       ))}
       <div style={{flex:1}}/>
@@ -1807,6 +1829,134 @@ function PreTicketFlow({ onComplete, onSkip }: { onComplete: () => void; onSkip:
   );
 }
 
+/* ══ COMPLIANCE VIEW ══ */
+function ComplianceView({ activeCompliances, onToggle }: { activeCompliances: string[]; onToggle: (id: string) => void }) {
+  const [expandedKey, setExpandedKey] = useState<string|null>(null);
+
+  const activeViolations = COMPLIANCE_VIOLATIONS.filter(v => activeCompliances.includes(v.standard));
+  const highCount   = activeViolations.filter(v => v.severity==="high").length;
+  const mediumCount = activeViolations.filter(v => v.severity==="medium").length;
+  const lowCount    = activeViolations.filter(v => v.severity==="low").length;
+
+  const sevColor  = (s:string) => s==="high"?C.red:s==="medium"?C.yellow:C.textDim;
+  const sevBg     = (s:string) => s==="high"?"rgba(220,38,38,0.06)":s==="medium"?"rgba(180,83,9,0.06)":"rgba(0,0,0,0.03)";
+  const sevBorder = (s:string) => s==="high"?"rgba(220,38,38,0.18)":s==="medium"?"rgba(180,83,9,0.15)":"rgba(0,0,0,0.08)";
+
+  return (
+    <div style={{flex:1,overflowY:"auto",padding:"28px 32px",height:"100%"}}>
+      {/* Header */}
+      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28}}>
+        <div>
+          <h2 style={{fontSize:18,fontWeight:600,color:C.text,letterSpacing:"-0.3px",marginBottom:6}}>Compliance Management</h2>
+          <p style={{fontSize:13,color:C.textDim,lineHeight:1.6}}>Set which standards your product must follow. Vantage will alert you when PRD requirements don't meet them.</p>
+        </div>
+        {activeViolations.length>0&&(
+          <div style={{display:"flex",gap:8,flexShrink:0,marginLeft:24}}>
+            {highCount>0&&<div style={{fontSize:12,padding:"5px 11px",background:"rgba(220,38,38,0.08)",border:"1px solid rgba(220,38,38,0.2)",borderRadius:7,color:C.red,fontWeight:500}}>{highCount} High</div>}
+            {mediumCount>0&&<div style={{fontSize:12,padding:"5px 11px",background:"rgba(180,83,9,0.08)",border:"1px solid rgba(180,83,9,0.2)",borderRadius:7,color:C.yellow,fontWeight:500}}>{mediumCount} Medium</div>}
+            {lowCount>0&&<div style={{fontSize:12,padding:"5px 11px",background:"rgba(0,0,0,0.04)",border:`1px solid ${C.border}`,borderRadius:7,color:C.textMuted,fontWeight:500}}>{lowCount} Low</div>}
+          </div>
+        )}
+      </div>
+
+      {/* Standards toggles */}
+      <div style={{marginBottom:32}}>
+        <p style={{fontSize:10,fontWeight:600,color:C.textDim,textTransform:"uppercase",letterSpacing:"0.09em",marginBottom:14}}>Active Standards</p>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(232px,1fr))",gap:10}}>
+          {COMPLIANCE_STANDARDS.map(std=>{
+            const active = activeCompliances.includes(std.id);
+            const vCount = COMPLIANCE_VIOLATIONS.filter(v=>v.standard===std.id).length;
+            const activeVCount = active ? vCount : 0;
+            return (
+              <div key={std.id} onClick={()=>onToggle(std.id)}
+                style={{background:active?std.bg:"rgba(0,0,0,0.02)",border:`1px solid ${active?std.border:C.border}`,borderRadius:10,padding:"13px 15px",cursor:"pointer",transition:"all 0.15s",opacity:active?1:0.55}}
+                onMouseEnter={e=>{if(!active)(e.currentTarget as HTMLDivElement).style.opacity="0.8";}}
+                onMouseLeave={e=>{if(!active)(e.currentTarget as HTMLDivElement).style.opacity="0.55";}}
+              >
+                <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:6}}>
+                  <div style={{display:"flex",alignItems:"center",gap:7}}>
+                    <span style={{fontSize:13,fontWeight:600,color:active?std.color:C.textMuted}}>{std.name}</span>
+                    <span style={{fontSize:9,color:C.textDim,background:"rgba(0,0,0,0.05)",padding:"1px 5px",borderRadius:3}}>{std.region}</span>
+                  </div>
+                  <div style={{width:18,height:18,borderRadius:"50%",border:`1.5px solid ${active?std.color:C.border}`,background:active?std.color:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.15s"}}>
+                    {active&&<svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M2 4.5L3.8 6.5L7 2.5" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                  </div>
+                </div>
+                <p style={{fontSize:11,color:C.textDim,lineHeight:1.45,marginBottom:activeVCount>0||active?7:0}}>{std.fullName}</p>
+                {active&&activeVCount>0&&<div style={{display:"flex",alignItems:"center",gap:4}}><span style={{fontSize:10,color:C.red}}>⚠</span><span style={{fontSize:10,color:C.red,fontWeight:500}}>{activeVCount} violation{activeVCount!==1?"s":""} detected</span></div>}
+                {active&&activeVCount===0&&<div style={{display:"flex",alignItems:"center",gap:4}}><span style={{fontSize:10,color:C.green}}>✓</span><span style={{fontSize:10,color:C.green}}>No violations</span></div>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Violations list */}
+      {activeCompliances.length>0&&(
+        <div>
+          <p style={{fontSize:10,fontWeight:600,color:C.textDim,textTransform:"uppercase",letterSpacing:"0.09em",marginBottom:14}}>
+            Requirement Alerts{activeViolations.length>0&&<span style={{color:C.red,marginLeft:4}}>· {activeViolations.length} found</span>}
+          </p>
+          {activeViolations.length===0?(
+            <div style={{background:"rgba(5,150,105,0.04)",border:"1px solid rgba(5,150,105,0.15)",borderRadius:12,padding:"28px",textAlign:"center"}}>
+              <div style={{fontSize:22,marginBottom:10}}>✓</div>
+              <p style={{fontSize:14,fontWeight:500,color:C.green,marginBottom:4}}>All requirements are compliant</p>
+              <p style={{fontSize:12,color:C.textDim}}>No violations detected for the active compliance standards.</p>
+            </div>
+          ):(
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {activeViolations.map((v,i)=>{
+                const std  = COMPLIANCE_STANDARDS.find(s=>s.id===v.standard);
+                const req  = REQS.find(r=>r.id===v.reqId);
+                const key  = `${v.standard}-${v.reqId}-${i}`;
+                const open = expandedKey===key;
+                return (
+                  <div key={key} style={{border:`1px solid ${sevBorder(v.severity)}`,borderRadius:10,overflow:"hidden"}}>
+                    <div onClick={()=>setExpandedKey(open?null:key)}
+                      style={{padding:"13px 16px",cursor:"pointer",background:open?sevBg(v.severity):"transparent",display:"flex",alignItems:"flex-start",gap:12,transition:"background 0.15s"}}
+                    >
+                      <div style={{width:8,height:8,borderRadius:"50%",background:sevColor(v.severity),flexShrink:0,marginTop:5}}/>
+                      <div style={{flex:1}}>
+                        <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:5,flexWrap:"wrap"}}>
+                          <span style={{fontSize:11,fontWeight:700,color:C.purpleLight}}>{v.reqId}</span>
+                          {std&&<span style={{fontSize:10,padding:"2px 7px",background:std.bg,color:std.color,borderRadius:4,border:`1px solid ${std.border}`,fontWeight:500}}>{std.name}</span>}
+                          <span style={{fontSize:10,padding:"2px 7px",background:sevBg(v.severity),color:sevColor(v.severity),borderRadius:4,fontWeight:600,textTransform:"capitalize"}}>{v.severity}</span>
+                        </div>
+                        <p style={{fontSize:13,color:C.text,lineHeight:1.45,margin:0,fontWeight:500}}>{v.title}</p>
+                        {req&&<p style={{fontSize:11,color:C.textDim,marginTop:3,lineHeight:1.4}}>"{req.title}"</p>}
+                      </div>
+                      <span style={{fontSize:10,color:C.textDim,transform:open?"rotate(90deg)":"rotate(0deg)",transition:"transform 0.15s",display:"inline-block",flexShrink:0,marginTop:4}}>▶</span>
+                    </div>
+                    {open&&(
+                      <div style={{background:sevBg(v.severity),borderTop:`1px solid ${sevBorder(v.severity)}`,padding:"14px 16px",display:"flex",flexDirection:"column",gap:12}}>
+                        <div>
+                          <p style={{fontSize:10,fontWeight:600,color:C.textDim,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Why this violates {std?.name}</p>
+                          <p style={{fontSize:12,color:"rgba(0,0,0,0.65)",lineHeight:1.65,background:"rgba(255,255,255,0.75)",border:"1px solid rgba(0,0,0,0.06)",borderRadius:7,padding:"9px 12px",margin:0}}>{v.detail}</p>
+                        </div>
+                        <div>
+                          <p style={{fontSize:10,fontWeight:600,color:C.green,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Suggested Fix</p>
+                          <p style={{fontSize:12,color:"rgba(0,0,0,0.65)",lineHeight:1.65,background:"rgba(5,150,105,0.05)",border:"1px solid rgba(5,150,105,0.15)",borderRadius:7,padding:"9px 12px",margin:0}}>{v.fix}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeCompliances.length===0&&(
+        <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"36px",textAlign:"center"}}>
+          <p style={{fontSize:14,color:C.textMuted,marginBottom:6}}>No compliance standards selected</p>
+          <p style={{fontSize:12,color:C.textDim}}>Toggle standards above to start checking your PRD requirements.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ══ WORKSPACE CONTENT ══ */
 function WorkspaceContent() {
   const searchParams = useSearchParams();
@@ -1823,6 +1973,7 @@ function WorkspaceContent() {
   const [impactReq, setImpactReq] = useState<Req|null>(null);
   const [showCompare, setShowCompare] = useState(false);
   const [linearConnected, setLinearConnected] = useState(false);
+  const [activeCompliances, setActiveCompliances] = useState<string[]>(["gdpr","pci-dss","wcag"]);
   const [insertedReqs, setInsertedReqs] = useState<string[]>([]);
   const [flashReqId, setFlashReqId] = useState<string|null>(null);
   const [queryLoading, setQueryLoading] = useState(false);
@@ -1869,7 +2020,7 @@ function WorkspaceContent() {
         </div>
         <div style={{flex:1}}/>
         <div style={{display:"flex",gap:2}}>
-          {[{k:"prd",l:"PRD"},{k:"tickets",l:"Tickets"},{k:"research",l:"Research"},{k:"figma",l:"Figma"},{k:"integrations",l:"Integrations"},{k:"metrics",l:"Metrics"}].map(t=>(
+          {[{k:"prd",l:"PRD"},{k:"tickets",l:"Tickets"},{k:"research",l:"Research"},{k:"figma",l:"Figma"},{k:"integrations",l:"Integrations"},{k:"metrics",l:"Metrics"},{k:"compliance",l:"Compliance"}].map(t=>(
             <button key={t.k} onClick={()=>setActiveTab(t.k)} style={{fontSize:12,padding:"5px 11px",borderRadius:7,background:activeTab===t.k?C.purpleBg:"transparent",border:`1px solid ${activeTab===t.k?C.purpleBorder:"transparent"}`,color:activeTab===t.k?C.purpleLight:C.textDim,cursor:"pointer",fontFamily:"inherit",fontWeight:activeTab===t.k?500:400,transition:"all 0.15s"}}>{t.l}</button>
           ))}
         </div>
@@ -1889,7 +2040,7 @@ function WorkspaceContent() {
 
       {/* Body */}
       <div style={{flex:1,display:"flex",overflow:"hidden"}}>
-        <Sidebar activeTab={activeTab} onTabChange={setActiveTab}/>
+        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} complianceAlerts={COMPLIANCE_VIOLATIONS.filter(v=>activeCompliances.includes(v.standard)).length}/>
         <div style={{flex:1,display:"flex",overflow:"hidden"}}>
           {activeTab==="prd"&&(
             <>
@@ -1911,6 +2062,7 @@ function WorkspaceContent() {
           {activeTab==="figma"&&<FigmaView/>}
           {activeTab==="integrations"&&<IntegrationsView linearConnected={linearConnected} onLinearConnect={()=>setLinearConnected(true)}/>}
           {activeTab==="metrics"&&<MetricsView/>}
+          {activeTab==="compliance"&&<ComplianceView activeCompliances={activeCompliances} onToggle={id=>setActiveCompliances(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id])}/>}
         </div>
         {showVersionHistory&&(activeTab==="prd"||activeTab==="tickets")&&<VersionHistoryPanel onClose={()=>setShowVersionHistory(false)}/>}
       </div>
