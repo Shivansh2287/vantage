@@ -259,9 +259,219 @@ function ExportModal({ onClose, ticketCount }: { onClose: () => void; ticketCoun
   );
 }
 
+/* ══ IMPACT + COMPARE DATA ══ */
+const REQ_TICKET_MAP: Record<string,string[]> = {
+  R1:["VAN-001","VAN-006"], R2:["VAN-003","VAN-004"], R3:["VAN-005"],
+  R4:["VAN-006"], R5:["VAN-007"], R6:["VAN-002","VAN-009"],
+  R7:["VAN-008"], R8:["VAN-009"],
+};
+const TICKET_STATUS: Record<string,{label:string;color:string}> = {
+  "VAN-001":{label:"Done",color:"#059669"},
+  "VAN-002":{label:"Done",color:"#059669"},
+  "VAN-003":{label:"In Progress",color:"#5746E8"},
+  "VAN-004":{label:"In Progress",color:"#5746E8"},
+  "VAN-005":{label:"Done",color:"#059669"},
+  "VAN-006":{label:"Blocked",color:"#dc2626"},
+  "VAN-007":{label:"Not Started",color:"rgba(0,0,0,0.3)"},
+  "VAN-008":{label:"Not Started",color:"rgba(0,0,0,0.3)"},
+  "VAN-009":{label:"Not Started",color:"rgba(0,0,0,0.3)"},
+};
+const DIFF_ENTRIES = [
+  {reqId:"R2",type:"modified" as const,before:"Support Apple Pay at checkout",after:"Support Apple Pay and Google Pay at checkout",why:"User research showed 42% of Android users prefer Google Pay. Adding it captures the full mobile payment audience without major additional effort.",ticketsAdded:["VAN-004"],ticketsModified:["VAN-003"]},
+  {reqId:"R4",type:"added" as const,before:null,after:"Autofill shipping from saved addresses",why:"Returning customer feedback showed frustration re-entering shipping. Scoped to authenticated users only to resolve conflict with R1 (guest checkout).",ticketsAdded:["VAN-006"],ticketsModified:[]},
+  {reqId:"R5",type:"added" as const,before:null,after:"Show estimated delivery date before confirming order",why:"A/B test in v1 showed 12% higher conversion when estimated delivery is visible before payment. Elevated to formal requirement.",ticketsAdded:["VAN-007"],ticketsModified:[]},
+  {reqId:"R6",type:"added" as const,before:null,after:"One-page checkout with progress indicator",why:"Baymard research confirms single-page checkout reduces abandonment by 22%. Elevated from nice-to-have to P1 based on drop-off analysis.",ticketsAdded:["VAN-002"],ticketsModified:[]},
+  {reqId:"R7",type:"added" as const,before:null,after:"Send abandoned cart email 30 min after drop-off",why:"Recovery emails capture 15% of abandoned carts. Low engineering effort relative to revenue impact — added as P2.",ticketsAdded:["VAN-008"],ticketsModified:[]},
+  {reqId:"R8",type:"added" as const,before:null,after:"A/B test CTA variants: 'Pay now' vs 'Complete order'",why:"v1 data showed CTA copy has 8% conversion variance. Formalizing as a requirement to measure impact of language systematically.",ticketsAdded:["VAN-009"],ticketsModified:[]},
+];
+
+/* ══ IMPACT PANEL ══ */
+function ImpactPanel({ req, onClose }: { req: Req; onClose: () => void }) {
+  const allTickets = WAVES.flatMap(w => w.tickets);
+  const linkedIds = REQ_TICKET_MAP[req.id] || [];
+  const linked = allTickets.filter(t => linkedIds.includes(t.id));
+  const cascade = allTickets.filter(t => !linkedIds.includes(t.id) && t.deps.some(d => linkedIds.includes(d)));
+  const hasActive = linked.some(t => { const s=TICKET_STATUS[t.id]; return s?.label==="In Progress"||s?.label==="Blocked"; });
+  const risk = hasActive?"High":linked.length>1?"Medium":"Low";
+  const riskColor = risk==="High"?C.red:risk==="Medium"?C.yellow:C.green;
+
+  return (
+    <div style={{width:300,borderLeft:`1px solid ${C.border}`,display:"flex",flexDirection:"column",height:"100%",flexShrink:0,overflowY:"auto"}}>
+      <div style={{padding:"12px 14px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+        <span style={{fontSize:12,fontWeight:600,color:"rgba(0,0,0,0.7)"}}>Change Impact</span>
+        <button onClick={onClose} style={{background:"none",border:"none",color:C.textDim,cursor:"pointer",fontSize:18,lineHeight:1}}>×</button>
+      </div>
+      <div style={{padding:"14px",flex:1}}>
+        {/* Selected req */}
+        <div style={{background:C.purpleBg,border:`1px solid ${C.purpleBorder}`,borderRadius:8,padding:"9px 11px",marginBottom:12}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.purpleLight,marginBottom:3}}>{req.id}</div>
+          <div style={{fontSize:12,color:C.text,lineHeight:1.5}}>{req.title}</div>
+        </div>
+        {/* Risk */}
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 11px",background:`${riskColor}08`,border:`1px solid ${riskColor}25`,borderRadius:7,marginBottom:14}}>
+          <span style={{fontSize:12,color:C.textMuted}}>Change risk</span>
+          <span style={{fontSize:11,fontWeight:600,color:riskColor,background:`${riskColor}15`,padding:"2px 9px",borderRadius:10}}>{risk}</span>
+        </div>
+        {/* Directly affected */}
+        {linked.length>0&&<>
+          <div style={{fontSize:10,fontWeight:600,color:C.textDim,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:7}}>Directly affected ({linked.length})</div>
+          <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:14}}>
+            {linked.map(t=>{
+              const s=TICKET_STATUS[t.id];
+              return (
+                <div key={t.id} style={{background:"#fff",border:`1px solid ${s?.label==="Blocked"?"rgba(220,38,38,0.2)":s?.label==="In Progress"?"rgba(87,70,232,0.2)":C.border}`,borderRadius:8,padding:"9px 11px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
+                    <span style={{fontSize:10,fontWeight:700,color:C.purpleLight}}>{t.id}</span>
+                    <div style={{flex:1}}/>
+                    {s&&<div style={{display:"flex",alignItems:"center",gap:3}}><div style={{width:5,height:5,borderRadius:"50%",background:s.color}}/><span style={{fontSize:10,color:s.color}}>{s.label}</span></div>}
+                  </div>
+                  <div style={{fontSize:11,color:"rgba(0,0,0,0.75)",lineHeight:1.45,marginBottom:s?.label==="In Progress"||s?.label==="Blocked"?5:0}}>{t.title}</div>
+                  {(s?.label==="In Progress"||s?.label==="Blocked")&&<div style={{fontSize:10,color:C.yellow,background:"rgba(180,83,9,0.06)",border:"1px solid rgba(180,83,9,0.12)",borderRadius:5,padding:"3px 7px"}}>⚠ Changing {req.id} requires rework here</div>}
+                  {t.deps.length>0&&<div style={{fontSize:10,color:C.textDim,marginTop:4}}>Depends on: {t.deps.join(", ")}</div>}
+                </div>
+              );
+            })}
+          </div>
+        </>}
+        {/* Cascade */}
+        {cascade.length>0&&<>
+          <div style={{fontSize:10,fontWeight:600,color:C.textDim,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:7}}>Cascade affected ({cascade.length})</div>
+          <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:14}}>
+            {cascade.map(t=>{
+              const s=TICKET_STATUS[t.id];
+              return (
+                <div key={t.id} style={{background:"rgba(0,0,0,0.02)",border:`1px dashed ${C.border}`,borderRadius:7,padding:"8px 11px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:3}}>
+                    <span style={{fontSize:10,fontWeight:700,color:C.textDim}}>{t.id}</span>
+                    <span style={{fontSize:9,color:C.textDim}}>↳ via {t.deps.filter(d=>linkedIds.includes(d)).join(", ")}</span>
+                    <div style={{flex:1}}/>{s&&<span style={{fontSize:10,color:s.color}}>{s.label}</span>}
+                  </div>
+                  <div style={{fontSize:11,color:C.textMuted,lineHeight:1.4}}>{t.title}</div>
+                </div>
+              );
+            })}
+          </div>
+        </>}
+        {linked.length===0&&<div style={{textAlign:"center",padding:"24px 0",fontSize:12,color:C.textDim}}>No tickets linked to {req.id} yet</div>}
+        <div style={{background:C.purpleBg,border:`1px solid ${C.purpleBorder}`,borderRadius:8,padding:"10px 12px"}}>
+          <p style={{fontSize:11,color:C.textMuted,lineHeight:1.6,margin:0}}><strong style={{color:C.purpleLight}}>Tip:</strong> Changing this requirement while tickets are in-progress will require re-grooming the affected wave.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══ VERSION COMPARE MODAL ══ */
+function CompareModal({ onClose }: { onClose: () => void }) {
+  const [leftVer, setLeftVer] = useState("v1");
+  const [rightVer, setRightVer] = useState("v4");
+  const [expandedReq, setExpandedReq] = useState<string|null>(null);
+  const allTickets = WAVES.flatMap(w => w.tickets);
+  function getTitle(id: string) { return allTickets.find(t=>t.id===id)?.title||id; }
+  const typeColor = (t:string) => t==="added"?C.green:t==="modified"?C.yellow:C.red;
+  const typeBg = (t:string) => t==="added"?"rgba(5,150,105,0.05)":t==="modified"?"rgba(180,83,9,0.05)":"rgba(220,38,38,0.05)";
+  const typeLabel = (t:string) => t==="added"?"Added":t==="modified"?"Modified":"Removed";
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.55)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:250,padding:"20px"}} onClick={onClose}>
+      <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:16,width:"100%",maxWidth:820,maxHeight:"90vh",display:"flex",flexDirection:"column",fontFamily:"Inter,sans-serif",boxShadow:"0 8px 48px rgba(0,0,0,0.14)"}} onClick={e=>e.stopPropagation()}>
+        {/* Header */}
+        <div style={{padding:"16px 22px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",gap:14,flexShrink:0}}>
+          <div>
+            <div style={{fontSize:15,fontWeight:600,color:C.text}}>Compare PRD Versions</div>
+            <div style={{fontSize:12,color:C.textDim,marginTop:2}}>What changed, which tickets were affected, and why</div>
+          </div>
+          <div style={{flex:1}}/>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            {(["v1","v2","v3"] as const).map((v,i)=>[
+              <select key={v} value={i===0?leftVer:rightVer} onChange={e=>i===0?setLeftVer(e.target.value):setRightVer(e.target.value)} style={{fontSize:12,padding:"5px 10px",background:"rgba(0,0,0,0.04)",border:`1px solid ${C.border}`,borderRadius:7,color:C.text,fontFamily:"inherit",cursor:"pointer"}}>
+                {["v1","v2","v3","v4"].map(v2=><option key={v2}>{v2}</option>)}
+              </select>,
+              i===0&&<span key="arrow" style={{fontSize:12,color:C.textDim}}>→</span>
+            ])}
+          </div>
+          <button onClick={onClose} style={{background:"none",border:"none",color:C.textDim,cursor:"pointer",fontSize:20,lineHeight:1,marginLeft:4}}>×</button>
+        </div>
+        {/* Summary strip */}
+        <div style={{padding:"11px 22px",borderBottom:`1px solid ${C.border}`,display:"flex",gap:24,background:"rgba(0,0,0,0.01)",flexShrink:0}}>
+          {[{l:"Requirements changed",v:"6",c:C.yellow},{l:"Tickets added",v:"6",c:C.green},{l:"Tickets modified",v:"1",c:C.purple},{l:"Archived",v:"0",c:C.textDim}].map(s=>(
+            <div key={s.l} style={{display:"flex",alignItems:"center",gap:7}}>
+              <span style={{fontSize:20,fontWeight:700,color:s.c,letterSpacing:"-0.5px"}}>{s.v}</span>
+              <span style={{fontSize:11,color:C.textDim}}>{s.l}</span>
+            </div>
+          ))}
+        </div>
+        {/* Diff list */}
+        <div style={{flex:1,overflowY:"auto",padding:"18px 22px",display:"flex",flexDirection:"column",gap:9}}>
+          {DIFF_ENTRIES.map(entry=>{
+            const isOpen=expandedReq===entry.reqId;
+            const col=typeColor(entry.type); const bg=typeBg(entry.type);
+            return (
+              <div key={entry.reqId} style={{border:`1px solid ${col}30`,borderRadius:12,overflow:"hidden"}}>
+                <div onClick={()=>setExpandedReq(isOpen?null:entry.reqId)} style={{padding:"12px 15px",cursor:"pointer",background:isOpen?bg:"transparent",display:"flex",alignItems:"flex-start",gap:10,transition:"background 0.15s"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:7,flexShrink:0,marginTop:1}}>
+                    <span style={{fontSize:10,fontWeight:700,color:C.purpleLight,width:22}}>{entry.reqId}</span>
+                    <span style={{fontSize:10,padding:"2px 7px",background:`${col}15`,color:col,borderRadius:4,fontWeight:600}}>{typeLabel(entry.type)}</span>
+                  </div>
+                  <div style={{flex:1}}>
+                    {entry.before&&<div style={{fontSize:11,color:C.textDim,textDecoration:"line-through",marginBottom:2}}>{entry.before}</div>}
+                    <div style={{fontSize:12,color:C.text,lineHeight:1.5}}>{entry.after}</div>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:7,flexShrink:0}}>
+                    {(entry.ticketsAdded.length+entry.ticketsModified.length)>0&&<span style={{fontSize:10,padding:"2px 7px",background:"rgba(0,0,0,0.05)",color:C.textMuted,borderRadius:4}}>{entry.ticketsAdded.length+entry.ticketsModified.length} ticket{entry.ticketsAdded.length+entry.ticketsModified.length!==1?"s":""}</span>}
+                    <span style={{fontSize:11,color:C.textDim,transform:isOpen?"rotate(90deg)":"rotate(0deg)",transition:"transform 0.15s",display:"inline-block"}}>▶</span>
+                  </div>
+                </div>
+                {isOpen&&(
+                  <div style={{background:bg,borderTop:`1px solid ${col}20`,padding:"13px 15px",display:"flex",flexDirection:"column",gap:11}}>
+                    <div>
+                      <div style={{fontSize:10,fontWeight:600,color:C.textDim,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Why this changed</div>
+                      <p style={{fontSize:12,color:"rgba(0,0,0,0.65)",lineHeight:1.65,background:"rgba(255,255,255,0.75)",border:`1px solid rgba(0,0,0,0.06)`,borderRadius:7,padding:"9px 12px",margin:0}}>{entry.why}</p>
+                    </div>
+                    {entry.ticketsAdded.length>0&&(
+                      <div>
+                        <div style={{fontSize:10,fontWeight:600,color:C.textDim,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Tickets added</div>
+                        <div style={{display:"flex",flexDirection:"column",gap:5}}>
+                          {entry.ticketsAdded.map(id=>(
+                            <div key={id} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",background:"rgba(5,150,105,0.06)",border:"1px solid rgba(5,150,105,0.15)",borderRadius:7}}>
+                              <span style={{fontSize:11,color:C.green,fontWeight:700}}>+</span>
+                              <span style={{fontSize:10,fontWeight:700,color:C.purpleLight}}>{id}</span>
+                              <span style={{fontSize:11,color:"rgba(0,0,0,0.65)",flex:1}}>{getTitle(id)}</span>
+                              {TICKET_STATUS[id]&&<div style={{display:"flex",alignItems:"center",gap:3}}><div style={{width:5,height:5,borderRadius:"50%",background:TICKET_STATUS[id].color}}/><span style={{fontSize:10,color:TICKET_STATUS[id].color}}>{TICKET_STATUS[id].label}</span></div>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {entry.ticketsModified.length>0&&(
+                      <div>
+                        <div style={{fontSize:10,fontWeight:600,color:C.textDim,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Tickets modified</div>
+                        <div style={{display:"flex",flexDirection:"column",gap:5}}>
+                          {entry.ticketsModified.map(id=>(
+                            <div key={id} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",background:"rgba(180,83,9,0.05)",border:"1px solid rgba(180,83,9,0.12)",borderRadius:7}}>
+                              <span style={{fontSize:11,color:C.yellow,fontWeight:700}}>~</span>
+                              <span style={{fontSize:10,fontWeight:700,color:C.purpleLight}}>{id}</span>
+                              <span style={{fontSize:11,color:"rgba(0,0,0,0.65)",flex:1}}>{getTitle(id)}</span>
+                              {TICKET_STATUS[id]&&<div style={{display:"flex",alignItems:"center",gap:3}}><div style={{width:5,height:5,borderRadius:"50%",background:TICKET_STATUS[id].color}}/><span style={{fontSize:10,color:TICKET_STATUS[id].color}}>{TICKET_STATUS[id].label}</span></div>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ══ PRD EDITOR ══ */
 /* ══ PRD DOCUMENT VIEW ══ */
-function PRDDocumentView({ insertedReqs, flashReqId, onConflictClick }: { insertedReqs:string[]; flashReqId:string|null; onConflictClick:(r:Req)=>void }) {
+function PRDDocumentView({ insertedReqs, flashReqId, onConflictClick, onImpactClick }: { insertedReqs:string[]; flashReqId:string|null; onConflictClick:(r:Req)=>void; onImpactClick:(r:Req)=>void }) {
   const H2 = ({ children }: { children: React.ReactNode }) => (
     <h2 style={{fontSize:16,fontWeight:600,color:C.text,letterSpacing:"-0.2px",marginBottom:10,marginTop:32,paddingBottom:8,borderBottom:`1px solid ${C.border}`}}>{children}</h2>
   );
@@ -324,14 +534,15 @@ function PRDDocumentView({ insertedReqs, flashReqId, onConflictClick }: { insert
         {REQS.map(req=>{
           const flash=flashReqId===req.id; const cited=insertedReqs.includes(req.id);
           return (
-            <div key={req.id} style={{border:`1px solid ${req.conflict?"rgba(245,180,69,0.28)":flash?"rgba(100,86,230,0.55)":C.border}`,borderRadius:10,padding:"14px 16px",background:flash?"rgba(87,70,232,0.06)":req.conflict?"rgba(245,180,69,0.03)":C.surface,transition:"all 0.35s",cursor:req.conflict?"pointer":"default"}} onClick={req.conflict?()=>onConflictClick(req):undefined}>
+            <div key={req.id} style={{border:`1px solid ${req.conflict?"rgba(245,180,69,0.28)":flash?"rgba(100,86,230,0.55)":C.border}`,borderRadius:10,padding:"14px 16px",background:flash?"rgba(87,70,232,0.06)":req.conflict?"rgba(245,180,69,0.03)":C.surface,transition:"all 0.35s"}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
                 <span style={{fontSize:11,fontWeight:700,color:C.purpleLight}}>{req.id}</span>
                 <span style={{fontSize:10,fontWeight:600,padding:"2px 6px",borderRadius:4,background:`${pc(req.priority)}18`,color:pc(req.priority)}}>{req.priority}</span>
                 <span style={{fontSize:11,color:C.textDim}}>{req.effort} effort · {req.points}pt{req.points!==1?"s":""}</span>
                 <div style={{flex:1}}/>
                 {cited&&<span style={{fontSize:10,padding:"2px 7px",background:C.purpleBg,color:C.purpleLight,borderRadius:4,border:`1px solid ${C.purpleBorder}`}}>cited</span>}
-                {req.conflict&&<span style={{fontSize:10,padding:"2px 7px",background:"rgba(245,180,69,0.14)",color:C.yellow,borderRadius:4,cursor:"pointer"}}>Conflict ⚠ — click to resolve</span>}
+                {req.conflict&&<span onClick={()=>onConflictClick(req)} style={{fontSize:10,padding:"2px 7px",background:"rgba(245,180,69,0.14)",color:C.yellow,borderRadius:4,cursor:"pointer"}}>Conflict ⚠</span>}
+                <button onClick={()=>onImpactClick(req)} style={{fontSize:10,padding:"2px 8px",background:"rgba(0,0,0,0.04)",border:`1px solid ${C.border}`,borderRadius:4,color:C.textDim,cursor:"pointer",fontFamily:"inherit"}} onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.borderColor=C.purpleBorder;(e.currentTarget as HTMLButtonElement).style.color=C.purpleLight;}} onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.borderColor=C.border;(e.currentTarget as HTMLButtonElement).style.color=C.textDim;}}>Impact ↗</button>
               </div>
               <p style={{fontSize:13,color:"rgba(0,0,0,0.75)",lineHeight:1.55,margin:0}}>{req.title}</p>
             </div>
@@ -394,8 +605,8 @@ function PRDDocumentView({ insertedReqs, flashReqId, onConflictClick }: { insert
 }
 
 /* ══ PRD EDITOR (with Document / Structured toggle) ══ */
-function PRDEditor({ insertedReqs, flashReqId, onConflictClick, onGenerateTickets, ticketsState, onExport }: {
-  insertedReqs: string[]; flashReqId: string|null; onConflictClick:(r:Req)=>void;
+function PRDEditor({ insertedReqs, flashReqId, onConflictClick, onImpactClick, onGenerateTickets, ticketsState, onExport }: {
+  insertedReqs: string[]; flashReqId: string|null; onConflictClick:(r:Req)=>void; onImpactClick:(r:Req)=>void;
   onGenerateTickets:()=>void; ticketsState:"idle"|"generating"|"done"; onExport:()=>void;
 }) {
   const [view, setView] = useState<"document"|"structured">("document");
@@ -426,7 +637,7 @@ function PRDEditor({ insertedReqs, flashReqId, onConflictClick, onGenerateTicket
       </div>
 
       {/* Document view */}
-      {view==="document"&&<PRDDocumentView insertedReqs={insertedReqs} flashReqId={flashReqId} onConflictClick={onConflictClick}/>}
+      {view==="document"&&<PRDDocumentView insertedReqs={insertedReqs} flashReqId={flashReqId} onConflictClick={onConflictClick} onImpactClick={onImpactClick}/>}
 
       {/* Structured view */}
       {view==="structured"&&(
@@ -448,12 +659,13 @@ function PRDEditor({ insertedReqs, flashReqId, onConflictClick, onGenerateTicket
             {filtered.map(req=>{
               const flash=flashReqId===req.id; const cited=insertedReqs.includes(req.id);
               return (
-                <div key={req.id} style={{border:`1px solid ${req.conflict?"rgba(245,180,69,0.28)":flash?"rgba(100,86,230,0.55)":C.border}`,borderRadius:8,padding:"10px 13px",background:flash?"rgba(100,86,230,0.1)":req.conflict?"rgba(180,83,9,0.04)":C.surface,display:"flex",alignItems:"center",gap:10,transition:"all 0.35s",cursor:req.conflict?"pointer":"default"}} onClick={req.conflict?()=>onConflictClick(req):undefined}>
+                <div key={req.id} style={{border:`1px solid ${req.conflict?"rgba(245,180,69,0.28)":flash?"rgba(100,86,230,0.55)":C.border}`,borderRadius:8,padding:"10px 13px",background:flash?"rgba(100,86,230,0.1)":req.conflict?"rgba(180,83,9,0.04)":C.surface,display:"flex",alignItems:"center",gap:10,transition:"all 0.35s"}}>
                   <span style={{fontSize:11,fontWeight:700,color:C.purpleLight,width:24,flexShrink:0}}>{req.id}</span>
                   <span style={{fontSize:9,fontWeight:600,padding:"2px 5px",borderRadius:3,background:`${pc(req.priority)}18`,color:pc(req.priority),flexShrink:0}}>{req.priority}</span>
                   <span style={{fontSize:12,color:"rgba(0,0,0,0.75)",flex:1,lineHeight:1.45}}>{req.title}</span>
                   {cited&&<span style={{fontSize:10,padding:"2px 7px",background:C.purpleBg,color:C.purpleLight,borderRadius:3,flexShrink:0,border:`1px solid ${C.purpleBorder}`}}>cited</span>}
-                  {req.conflict&&<span style={{fontSize:10,padding:"2px 7px",background:"rgba(245,180,69,0.14)",color:C.yellow,borderRadius:3,flexShrink:0,whiteSpace:"nowrap"}}>Conflict ⚠</span>}
+                  {req.conflict&&<span onClick={()=>onConflictClick(req)} style={{fontSize:10,padding:"2px 7px",background:"rgba(245,180,69,0.14)",color:C.yellow,borderRadius:3,flexShrink:0,whiteSpace:"nowrap",cursor:"pointer"}}>Conflict ⚠</span>}
+                  <button onClick={()=>onImpactClick(req)} style={{fontSize:10,padding:"2px 7px",background:"rgba(0,0,0,0.04)",border:`1px solid ${C.border}`,borderRadius:4,color:C.textDim,cursor:"pointer",fontFamily:"inherit",flexShrink:0}} onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.color=C.purpleLight;(e.currentTarget as HTMLButtonElement).style.borderColor=C.purpleBorder;}} onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.color=C.textDim;(e.currentTarget as HTMLButtonElement).style.borderColor=C.border;}}>Impact ↗</button>
                   <span style={{fontSize:11,color:C.textDim,flexShrink:0}}>{req.effort} · {req.points}pt{req.points!==1?"s":""}</span>
                 </div>
               );
@@ -1385,6 +1597,216 @@ function MetricsView() {
   );
 }
 
+/* ══ PRE-TICKET FLOW ══ */
+function PreTicketFlow({ onComplete, onSkip }: { onComplete: () => void; onSkip: () => void }) {
+  const [step, setStep] = useState<1|2|3>(1);
+  const [selectedWorkflow, setSelectedWorkflow] = useState<string|null>(null);
+  const [versionPhase, setVersionPhase] = useState(0);
+
+  const emConvo = [
+    { role:"em" as const, name:"Sarah R. · Eng Manager", text:"Looked through the PRD — wave structure makes sense. Main concern is VAN-003 (Apple Pay). Stripe had breaking API changes last quarter that could affect our timeline." },
+    { role:"pm" as const, name:"You · PM", text:"Good catch. Should we scope Wave 2 to Apple Pay only for launch and push Google Pay to v1.1?" },
+    { role:"em" as const, name:"Sarah R. · Eng Manager", text:"Yes, reduces risk a lot. Also — R6 (one-page checkout) is heavier than the estimate. Ship R1+R2 first, measure impact, then tackle R6." },
+    { role:"pm" as const, name:"You · PM", text:"Agreed. R6 moves to Wave 3. VAN-003 is our critical path — if it slips, everything slips." },
+    { role:"em" as const, name:"Sarah R. · Eng Manager", text:"Perfect. I'll flag it in the planning doc. We're aligned — let's generate the tickets." },
+  ];
+
+  const workflows = [
+    { id:"sprint", icon:"⚡", label:"Sprint-based", desc:"2-week cycles with velocity tracking. Best for predictable delivery.", detail:"Tickets grouped into 2-week sprints · Story points · Velocity chart" },
+    { id:"kanban", icon:"→", label:"Kanban", desc:"Continuous flow with WIP limits. Best for ongoing maintenance work.", detail:"No sprint boundaries · WIP limits per stage · Cycle time tracking" },
+    { id:"epic", icon:"📦", label:"Epic-driven", desc:"Tickets grouped under large initiative epics. Best for big projects.", detail:"Epics group related tickets · Roadmap view · Cross-team dependencies" },
+    { id:"milestone", icon:"🏁", label:"Milestone-based", desc:"Fixed release dates. Best for coordinated launches across teams.", detail:"Milestones as release targets · Date-driven deadlines · Launch checklists" },
+  ];
+
+  const versionSteps = [
+    { icon:"📋", label:"New tickets generated", desc:"9 tickets created for v2 · dependency waves preserved", color:C.purple },
+    { icon:"📁", label:"Old tickets archived", desc:"v1 tickets moved to archive — searchable, not deleted", color:"#64748b" },
+    { icon:"🗂️", label:"Grooming session scheduled", desc:"Calendar invite sent to team for backlog review", color:C.yellow },
+    { icon:"🚀", label:"Deploy pipeline triggered", desc:"CI/CD pipeline queued for v2 release branch", color:C.green },
+  ];
+
+  useEffect(() => {
+    if (step === 3) {
+      const timers: ReturnType<typeof setTimeout>[] = [];
+      versionSteps.forEach((_, i) => {
+        timers.push(setTimeout(() => setVersionPhase(i + 1), i * 650 + 300));
+      });
+      return () => timers.forEach(clearTimeout);
+    }
+  }, [step]); // eslint-disable-line
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(250,250,250,0.98)",backdropFilter:"blur(8px)",zIndex:300,display:"flex",flexDirection:"column",fontFamily:"Inter,sans-serif"}}>
+      {/* Header */}
+      <div style={{height:52,borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",padding:"0 28px",gap:16,flexShrink:0}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          {([1,2,3] as const).map((n,i) => (
+            <div key={n} style={{display:"flex",alignItems:"center",gap:8}}>
+              <div style={{width:22,height:22,borderRadius:"50%",background:step>n?C.green:step===n?C.purple:"rgba(0,0,0,0.08)",border:`1px solid ${step>n?C.green:step===n?C.purple:C.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:600,color:"white",transition:"all 0.3s"}}>
+                {step>n?"✓":n}
+              </div>
+              {i<2&&<div style={{width:28,height:1,background:step>n?C.green:C.border,transition:"background 0.3s"}}/>}
+            </div>
+          ))}
+        </div>
+        <span style={{fontSize:12,color:C.textDim,marginLeft:4}}>
+          {step===1?"EM Collaboration":step===2?"Workflow Pattern":"Version Setup"}
+        </span>
+        <div style={{flex:1}}/>
+        <button onClick={onSkip} style={{fontSize:12,color:C.textDim,background:"none",border:`1px solid transparent`,borderRadius:7,cursor:"pointer",fontFamily:"inherit",padding:"5px 12px",transition:"border-color 0.15s"}} onMouseEnter={e=>(e.currentTarget as HTMLButtonElement).style.borderColor=C.border} onMouseLeave={e=>(e.currentTarget as HTMLButtonElement).style.borderColor="transparent"}>Skip setup →</button>
+      </div>
+
+      {/* Body */}
+      <div style={{flex:1,overflow:"auto",display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"48px 24px"}}>
+        <div style={{width:"100%",maxWidth:620}}>
+
+          {/* ── Step 1: EM Collaboration ── */}
+          {step===1&&(
+            <div>
+              <div style={{marginBottom:28}}>
+                <div style={{fontSize:11,fontWeight:600,color:C.purpleLight,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8}}>Step 1 of 3 · Collaboration</div>
+                <h2 style={{fontSize:24,fontWeight:600,color:C.text,letterSpacing:"-0.4px",marginBottom:8}}>Talk it out with your EM</h2>
+                <p style={{fontSize:14,color:C.textMuted,lineHeight:1.65}}>Align on scope before locking in the execution plan. Surface blockers, adjust priorities, confirm the critical path.</p>
+              </div>
+
+              <div style={{background:"#ffffff",border:`1px solid ${C.border}`,borderRadius:14,overflow:"hidden",marginBottom:20}}>
+                <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",gap:10}}>
+                  <div style={{width:30,height:30,borderRadius:"50%",background:"rgba(234,88,12,0.12)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:C.orange}}>SR</div>
+                  <div>
+                    <div style={{fontSize:12,fontWeight:600,color:C.text}}>Sarah R. · Engineering Manager</div>
+                    <div style={{fontSize:11,color:C.textDim}}>Checkout squad · 3 engineers</div>
+                  </div>
+                  <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:5}}>
+                    <div style={{width:6,height:6,borderRadius:"50%",background:C.green}}/>
+                    <span style={{fontSize:11,color:C.textDim}}>online</span>
+                  </div>
+                </div>
+                <div style={{padding:"16px",display:"flex",flexDirection:"column",gap:10}}>
+                  {emConvo.map((msg,i) => (
+                    <div key={i} style={{display:"flex",justifyContent:msg.role==="pm"?"flex-end":"flex-start"}}>
+                      <div style={{maxWidth:"82%",fontSize:12,lineHeight:1.65,padding:"9px 12px",borderRadius:msg.role==="pm"?"10px 10px 2px 10px":"10px 10px 10px 2px",background:msg.role==="pm"?"rgba(87,70,232,0.1)":"rgba(0,0,0,0.04)",border:`1px solid ${msg.role==="pm"?"rgba(87,70,232,0.2)":C.border}`,color:msg.role==="pm"?C.purpleLight:"rgba(0,0,0,0.7)"}}>
+                        <div style={{fontSize:10,fontWeight:500,color:msg.role==="pm"?C.purpleLight:C.textDim,marginBottom:4}}>{msg.name}</div>
+                        {msg.text}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                <div style={{flex:1,background:"rgba(5,150,105,0.05)",border:"1px solid rgba(5,150,105,0.15)",borderRadius:8,padding:"10px 14px",fontSize:12,color:C.green}}>
+                  ✓ Scope aligned · VAN-003 flagged critical path · R6 moved to Wave 3
+                </div>
+                <button onClick={()=>setStep(2)} style={{padding:"10px 22px",background:C.purple,border:"none",borderRadius:10,color:"#fff",cursor:"pointer",fontSize:13,fontFamily:"inherit",fontWeight:500,flexShrink:0}}>Continue →</button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 2: Workflow Pattern ── */}
+          {step===2&&(
+            <div>
+              <div style={{marginBottom:28}}>
+                <div style={{fontSize:11,fontWeight:600,color:C.purpleLight,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8}}>Step 2 of 3 · Workflow</div>
+                <h2 style={{fontSize:24,fontWeight:600,color:C.text,letterSpacing:"-0.4px",marginBottom:8}}>How does your team work?</h2>
+                <p style={{fontSize:14,color:C.textMuted,lineHeight:1.65}}>Choose your delivery pattern. Different companies work differently — this shapes how tickets are grouped, ordered, and tracked.</p>
+              </div>
+
+              <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:24}}>
+                {workflows.map(w=>(
+                  <div key={w.id} onClick={()=>setSelectedWorkflow(w.id)} style={{background:selectedWorkflow===w.id?"rgba(87,70,232,0.05)":"#ffffff",border:`1px solid ${selectedWorkflow===w.id?"rgba(87,70,232,0.3)":C.border}`,borderRadius:12,padding:"14px 16px",cursor:"pointer",transition:"all 0.15s"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:12}}>
+                      <div style={{width:34,height:34,borderRadius:9,background:selectedWorkflow===w.id?C.purpleBg:"rgba(0,0,0,0.04)",border:`1px solid ${selectedWorkflow===w.id?C.purpleBorder:C.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:selectedWorkflow===w.id?16:15,flexShrink:0,transition:"all 0.15s"}}>{w.icon}</div>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:13,fontWeight:600,color:selectedWorkflow===w.id?C.purpleLight:C.text,marginBottom:3}}>{w.label}</div>
+                        <div style={{fontSize:12,color:C.textMuted}}>{w.desc}</div>
+                      </div>
+                      <div style={{width:18,height:18,borderRadius:"50%",border:`2px solid ${selectedWorkflow===w.id?C.purple:C.border}`,background:selectedWorkflow===w.id?C.purple:"transparent",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.15s"}}>
+                        {selectedWorkflow===w.id&&<div style={{width:5,height:5,borderRadius:"50%",background:"white"}}/>}
+                      </div>
+                    </div>
+                    {selectedWorkflow===w.id&&(
+                      <div style={{fontSize:11,color:C.purpleLight,background:C.purpleBg,borderRadius:6,padding:"7px 10px",marginTop:10,marginLeft:46}}>{w.detail}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div style={{display:"flex",gap:10}}>
+                <button onClick={()=>setStep(1)} style={{padding:"10px 18px",background:"transparent",border:`1px solid ${C.border}`,borderRadius:10,color:C.textMuted,cursor:"pointer",fontSize:13,fontFamily:"inherit"}}>← Back</button>
+                <button onClick={()=>{if(selectedWorkflow)setStep(3);}} disabled={!selectedWorkflow} style={{flex:1,padding:"10px",background:selectedWorkflow?C.purple:"rgba(0,0,0,0.1)",border:"none",borderRadius:10,color:selectedWorkflow?"#fff":C.textDim,cursor:selectedWorkflow?"pointer":"not-allowed",fontSize:13,fontFamily:"inherit",fontWeight:500,transition:"all 0.2s"}}>Continue →</button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 3: Version Setup ── */}
+          {step===3&&(
+            <div>
+              <div style={{marginBottom:28}}>
+                <div style={{fontSize:11,fontWeight:600,color:C.purpleLight,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8}}>Step 3 of 3 · Versioning</div>
+                <h2 style={{fontSize:24,fontWeight:600,color:C.text,letterSpacing:"-0.4px",marginBottom:8}}>Publishing a new version</h2>
+                <p style={{fontSize:14,color:C.textMuted,lineHeight:1.65}}>Here's what happens when you publish v2 of this PRD — new tickets, archived old ones, grooming, then deploy.</p>
+              </div>
+
+              {/* Version diff */}
+              <div style={{background:"#ffffff",border:`1px solid ${C.border}`,borderRadius:14,padding:"18px 20px",marginBottom:14}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+                  <span style={{fontSize:13,fontWeight:600,color:C.text}}>Version diff · v1 → v2</span>
+                  <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                    <span style={{fontSize:11,padding:"3px 8px",background:"rgba(220,38,38,0.07)",color:C.red,borderRadius:4}}>v1 · 6 tickets</span>
+                    <span style={{fontSize:11,color:C.textDim}}>→</span>
+                    <span style={{fontSize:11,padding:"3px 8px",background:C.purpleBg,color:C.purpleLight,borderRadius:4}}>v2 · 9 tickets</span>
+                  </div>
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {[
+                    {id:"VAN-001",label:"Implement guest checkout bypass",status:"kept"},
+                    {id:"VAN-002",label:"Build CheckoutProgress component",status:"kept"},
+                    {id:"VAN-003",label:"Integrate Apple Pay via Stripe",status:"new"},
+                    {id:"VAN-009",label:"A/B test: checkout CTA copy",status:"new"},
+                    {id:"OLD-005",label:"Stripe v2 integration (legacy)",status:"archived"},
+                  ].map(t=>(
+                    <div key={t.id} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 10px",borderRadius:7,background:t.status==="new"?"rgba(5,150,105,0.04)":t.status==="archived"?"rgba(220,38,38,0.03)":"rgba(0,0,0,0.02)",border:`1px solid ${t.status==="new"?"rgba(5,150,105,0.12)":t.status==="archived"?"rgba(220,38,38,0.1)":C.border}`}}>
+                      <span style={{fontSize:11,fontWeight:700,color:t.status==="new"?C.green:t.status==="archived"?C.red:C.textDim,width:14}}>{t.status==="new"?"+":t.status==="archived"?"−":"·"}</span>
+                      <span style={{fontSize:11,fontWeight:600,color:C.purpleLight,flexShrink:0,width:56}}>{t.id}</span>
+                      <span style={{fontSize:11,color:t.status==="archived"?C.textDim:C.textMuted,flex:1,textDecoration:t.status==="archived"?"line-through":"none"}}>{t.label}</span>
+                      <span style={{fontSize:10,padding:"2px 6px",background:t.status==="new"?"rgba(5,150,105,0.1)":t.status==="archived"?"rgba(220,38,38,0.08)":"rgba(0,0,0,0.05)",color:t.status==="new"?C.green:t.status==="archived"?C.red:C.textDim,borderRadius:4}}>{t.status}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Release lifecycle */}
+              <div style={{background:"#ffffff",border:`1px solid ${C.border}`,borderRadius:14,padding:"18px 20px",marginBottom:20}}>
+                <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:16}}>Release lifecycle</div>
+                <div style={{display:"flex",flexDirection:"column",gap:16}}>
+                  {versionSteps.map((vs,i)=>(
+                    <div key={i} style={{display:"flex",gap:14,alignItems:"flex-start",opacity:versionPhase>i?1:0.18,transition:"opacity 0.5s ease"}}>
+                      <div style={{display:"flex",flexDirection:"column",alignItems:"center",flexShrink:0}}>
+                        <div style={{width:36,height:36,borderRadius:10,background:versionPhase>i?`${vs.color}18`:"rgba(0,0,0,0.03)",border:`1px solid ${versionPhase>i?`${vs.color}35`:C.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,transition:"all 0.5s"}}>{vs.icon}</div>
+                        {i<versionSteps.length-1&&<div style={{width:1,height:20,background:versionPhase>i+1?vs.color:C.border,marginTop:4,transition:"background 0.5s"}}/>}
+                      </div>
+                      <div style={{flex:1,paddingTop:5}}>
+                        <div style={{fontSize:13,fontWeight:600,color:versionPhase>i?C.text:C.textDim,marginBottom:3,transition:"color 0.5s"}}>{vs.label}</div>
+                        <div style={{fontSize:12,color:C.textMuted,lineHeight:1.5}}>{vs.desc}</div>
+                        {versionPhase>i&&<div style={{display:"flex",alignItems:"center",gap:5,marginTop:5}}><div style={{width:5,height:5,borderRadius:"50%",background:C.green}}/><span style={{fontSize:11,color:C.green}}>Done</span></div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{display:"flex",gap:10}}>
+                <button onClick={()=>setStep(2)} style={{padding:"10px 18px",background:"transparent",border:`1px solid ${C.border}`,borderRadius:10,color:C.textMuted,cursor:"pointer",fontSize:13,fontFamily:"inherit"}}>← Back</button>
+                <button onClick={onComplete} style={{flex:1,padding:"10px",background:C.purple,border:"none",borderRadius:10,color:"#fff",cursor:"pointer",fontSize:13,fontFamily:"inherit",fontWeight:500}}>Confirm and generate tickets →</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ══ WORKSPACE CONTENT ══ */
 function WorkspaceContent() {
   const searchParams = useSearchParams();
@@ -1397,6 +1819,9 @@ function WorkspaceContent() {
   const [conflictReq, setConflictReq] = useState<Req|null>(null);
   const [showExport, setShowExport] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [showPreTicket, setShowPreTicket] = useState(false);
+  const [impactReq, setImpactReq] = useState<Req|null>(null);
+  const [showCompare, setShowCompare] = useState(false);
   const [linearConnected, setLinearConnected] = useState(false);
   const [insertedReqs, setInsertedReqs] = useState<string[]>([]);
   const [flashReqId, setFlashReqId] = useState<string|null>(null);
@@ -1419,6 +1844,11 @@ function WorkspaceContent() {
   }
 
   function handleGenerateTickets() {
+    setShowPreTicket(true);
+  }
+
+  function handlePreTicketComplete() {
+    setShowPreTicket(false);
     setTicketsState("generating");
     setActiveTab("tickets");
     setTimeout(()=>setTicketsState("done"),2400);
@@ -1452,6 +1882,7 @@ function WorkspaceContent() {
             ))}
           </div>
           <span style={{fontSize:11,color:C.textDim}}>3 online</span>
+          <button onClick={()=>setShowCompare(true)} style={{fontSize:11,padding:"4px 10px",background:"rgba(0,0,0,0.05)",border:`1px solid ${C.border}`,borderRadius:6,color:C.textDim,cursor:"pointer",fontFamily:"inherit",marginLeft:4}} onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.borderColor=C.purpleBorder;(e.currentTarget as HTMLButtonElement).style.color=C.purpleLight;}} onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.borderColor=C.border;(e.currentTarget as HTMLButtonElement).style.color=C.textDim;}}>Compare ↔</button>
           <button onClick={()=>setShowVersionHistory(v=>!v)} style={{fontSize:11,padding:"4px 10px",background:showVersionHistory?C.purpleBg:"rgba(0,0,0,0.05)",border:`1px solid ${showVersionHistory?C.purpleBorder:C.border}`,borderRadius:6,color:showVersionHistory?C.purpleLight:C.textDim,cursor:"pointer",fontFamily:"inherit",marginLeft:4}}>History</button>
         </div>
       </div>
@@ -1462,8 +1893,11 @@ function WorkspaceContent() {
         <div style={{flex:1,display:"flex",overflow:"hidden"}}>
           {activeTab==="prd"&&(
             <>
-              <PRDEditor insertedReqs={insertedReqs} flashReqId={flashReqId} onConflictClick={setConflictReq} onGenerateTickets={handleGenerateTickets} ticketsState={ticketsState} onExport={()=>setShowExport(true)}/>
-              <QueryPanel messages={messages} onSend={handleQuery} loading={queryLoading} onInsert={handleInsert}/>
+              <PRDEditor insertedReqs={insertedReqs} flashReqId={flashReqId} onConflictClick={setConflictReq} onImpactClick={r=>{setImpactReq(r);}} onGenerateTickets={handleGenerateTickets} ticketsState={ticketsState} onExport={()=>setShowExport(true)}/>
+              {impactReq
+                ? <ImpactPanel req={impactReq} onClose={()=>setImpactReq(null)}/>
+                : <QueryPanel messages={messages} onSend={handleQuery} loading={queryLoading} onInsert={handleInsert}/>
+              }
             </>
           )}
           {activeTab==="tickets"&&(
@@ -1481,6 +1915,8 @@ function WorkspaceContent() {
         {showVersionHistory&&(activeTab==="prd"||activeTab==="tickets")&&<VersionHistoryPanel onClose={()=>setShowVersionHistory(false)}/>}
       </div>
 
+      {showPreTicket&&<PreTicketFlow onComplete={handlePreTicketComplete} onSkip={handlePreTicketComplete}/>}
+      {showCompare&&<CompareModal onClose={()=>setShowCompare(false)}/>}
       {conflictReq&&<ConflictModal req={conflictReq} onClose={()=>setConflictReq(null)}/>}
       {showExport&&<ExportModal onClose={()=>setShowExport(false)} ticketCount={totalTickets}/>}
 

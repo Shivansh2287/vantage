@@ -33,7 +33,8 @@ const EXTRACTED = {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const [step, setStep] = useState<1|2|3|4>(1);
+  const [step, setStep] = useState<1|2|3|4|5>(1);
+  const [connectedServices, setConnectedServices] = useState<Set<string>>(new Set());
   const [url, setUrl] = useState("");
   const [crawlState, setCrawlState] = useState<"idle"|"crawling"|"done">("idle");
   const [crawlCount, setCrawlCount] = useState(0);
@@ -82,12 +83,12 @@ export default function OnboardingPage() {
         <div style={{ flex: 1 }} />
         {/* Step indicator */}
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          {([1,2,3,4] as const).map((n, i) => (
+          {([1,2,3,4,5] as const).map((n, i) => (
             <div key={n} style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <div style={{ width: 22, height: 22, borderRadius: "50%", background: step > n ? C.green : step === n ? C.purple : "rgba(0,0,0,0.08)", border: `1px solid ${step > n ? C.green : step === n ? C.purple : C.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 600, color: "white", transition: "all 0.3s" }}>
                 {step > n ? "✓" : n}
               </div>
-              {i < 3 && <div style={{ width: 24, height: 1, background: step > n ? C.green : C.border, transition: "background 0.3s" }} />}
+              {i < 4 && <div style={{ width: 18, height: 1, background: step > n ? C.green : C.border, transition: "background 0.3s" }} />}
             </div>
           ))}
         </div>
@@ -102,7 +103,7 @@ export default function OnboardingPage() {
           {step === 1 && (
             <div>
               <div style={{ marginBottom: 32 }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: C.purpleLight, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Step 1 of 4</div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: C.purpleLight, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Step 1 of 5</div>
                 <h1 style={{ fontSize: 28, fontWeight: 600, color: C.text, letterSpacing: "-0.5px", marginBottom: 10 }}>What's your product URL?</h1>
                 <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.65 }}>Vantage will crawl your website and extract your product context — name, features, audience, and tech stack. Up to 50 pages.</p>
               </div>
@@ -150,11 +151,60 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* STEP 2: Docs + Screenshots */}
+          {/* STEP 2: Data Connectors */}
           {step === 2 && (
             <div>
               <div style={{ marginBottom: 32 }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: C.purpleLight, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Step 2 of 4</div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: C.purpleLight, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Step 2 of 5</div>
+                <h1 style={{ fontSize: 28, fontWeight: 600, color: C.text, letterSpacing: "-0.5px", marginBottom: 10 }}>Connect your data sources</h1>
+                <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.65 }}>Pull in context from the tools your team already uses. Vantage reads from these sources to inform your PRD and tickets.</p>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+                {[
+                  { id: "github", name: "GitHub", desc: "Index your codebase — tickets reference real files and functions.", icon: "</>", color: "rgba(0,0,0,0.08)", badge: "MVP" },
+                  { id: "jira", name: "Jira", desc: "Two-way sync — existing tickets and epics inform the PRD context.", icon: "J", color: "rgba(0,101,255,0.15)", badge: "MVP" },
+                  { id: "notion", name: "Notion", desc: "Import PRDs, decision logs, and roadmaps. Query across all pages.", icon: "N", color: "rgba(0,0,0,0.07)", badge: "MVP" },
+                  { id: "slack", name: "Slack", desc: "Surface relevant channel discussions and decisions as product context.", icon: "#", color: "rgba(74,21,75,0.12)", badge: "MVP" },
+                  { id: "gsuite", name: "Google Workspace", desc: "Import Docs, Sheets, and Drive files into your product context.", icon: "G", color: "rgba(66,133,244,0.15)", badge: "MVP" },
+                ].map(svc => {
+                  const isConnected = connectedServices.has(svc.id);
+                  return (
+                    <div key={svc.id} style={{ background: isConnected ? "rgba(5,150,105,0.04)" : C.surface, border: `1px solid ${isConnected ? "rgba(5,150,105,0.2)" : C.border}`, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", gap: 14, transition: "all 0.25s" }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 9, background: svc.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: "rgba(0,0,0,0.65)", fontWeight: 700, flexShrink: 0 }}>{svc.icon}</div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 2 }}>{svc.name} <span style={{ fontSize: 10, background: "rgba(87,70,232,0.1)", color: C.purpleLight, borderRadius: 4, padding: "1px 5px", marginLeft: 4 }}>{svc.badge}</span></div>
+                        <div style={{ fontSize: 12, color: C.textMuted }}>{svc.desc}</div>
+                      </div>
+                      {isConnected
+                        ? <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}><div style={{ width: 6, height: 6, borderRadius: "50%", background: C.green }} /><span style={{ fontSize: 12, color: C.green, fontWeight: 500 }}>Connected</span></div>
+                        : <button onClick={() => setConnectedServices(prev => { const n = new Set(prev); n.add(svc.id); return n; })} style={{ fontSize: 12, padding: "6px 14px", background: C.purpleBg, border: `1px solid ${C.purpleBorder}`, borderRadius: 7, color: C.purpleLight, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>Connect →</button>
+                      }
+                    </div>
+                  );
+                })}
+              </div>
+
+              {connectedServices.size > 0 && (
+                <div style={{ background: "rgba(5,150,105,0.05)", border: "1px solid rgba(5,150,105,0.15)", borderRadius: 8, padding: "10px 14px", marginBottom: 20, fontSize: 12, color: C.green }}>
+                  ✓ {connectedServices.size} connector{connectedServices.size !== 1 ? "s" : ""} active — Vantage will index these alongside your crawled pages.
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: 10 }}>
+                <button onClick={() => setStep(1)} style={{ padding: "11px 20px", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 10, color: C.textMuted, cursor: "pointer", fontSize: 14, fontFamily: "inherit" }}>← Back</button>
+                <button onClick={() => setStep(3)} style={{ flex: 1, padding: "11px", background: C.purple, border: "none", borderRadius: 10, color: "#fff", cursor: "pointer", fontSize: 14, fontFamily: "inherit", fontWeight: 500 }}>
+                  {connectedServices.size > 0 ? "Add more context →" : "Skip for now →"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: Docs + Screenshots */}
+          {step === 3 && (
+            <div>
+              <div style={{ marginBottom: 32 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: C.purpleLight, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Step 3 of 5</div>
                 <h1 style={{ fontSize: 28, fontWeight: 600, color: C.text, letterSpacing: "-0.5px", marginBottom: 10 }}>Add more context</h1>
                 <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.65 }}>Upload existing docs and screenshots to give Vantage internal context that no crawl can find.</p>
               </div>
@@ -214,17 +264,17 @@ export default function OnboardingPage() {
               </div>
 
               <div style={{ display: "flex", gap: 10 }}>
-                <button onClick={() => setStep(1)} style={{ padding: "11px 20px", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 10, color: C.textMuted, cursor: "pointer", fontSize: 14, fontFamily: "inherit" }}>← Back</button>
-                <button onClick={() => setStep(3)} style={{ flex: 1, padding: "11px", background: C.purple, border: "none", borderRadius: 10, color: "#fff", cursor: "pointer", fontSize: 14, fontFamily: "inherit", fontWeight: 500 }}>Review context →</button>
+                <button onClick={() => setStep(2)} style={{ padding: "11px 20px", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 10, color: C.textMuted, cursor: "pointer", fontSize: 14, fontFamily: "inherit" }}>← Back</button>
+                <button onClick={() => setStep(4)} style={{ flex: 1, padding: "11px", background: C.purple, border: "none", borderRadius: 10, color: "#fff", cursor: "pointer", fontSize: 14, fontFamily: "inherit", fontWeight: 500 }}>Review context →</button>
               </div>
             </div>
           )}
 
-          {/* STEP 3: Review context */}
-          {step === 3 && (
+          {/* STEP 4: Review context */}
+          {step === 4 && (
             <div>
               <div style={{ marginBottom: 32 }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: C.purpleLight, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Step 3 of 4</div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: C.purpleLight, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Step 4 of 5</div>
                 <h1 style={{ fontSize: 28, fontWeight: 600, color: C.text, letterSpacing: "-0.5px", marginBottom: 10 }}>Review what we found</h1>
                 <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.65 }}>Vantage extracted this from your website. Correct anything that's wrong.</p>
               </div>
@@ -254,17 +304,17 @@ export default function OnboardingPage() {
               </div>
 
               <div style={{ display: "flex", gap: 10 }}>
-                <button onClick={() => setStep(2)} style={{ padding: "11px 20px", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 10, color: C.textMuted, cursor: "pointer", fontSize: 14, fontFamily: "inherit" }}>← Back</button>
-                <button onClick={() => setStep(4)} style={{ flex: 1, padding: "11px", background: C.purple, border: "none", borderRadius: 10, color: "#fff", cursor: "pointer", fontSize: 14, fontFamily: "inherit", fontWeight: 500 }}>Looks good →</button>
+                <button onClick={() => setStep(3)} style={{ padding: "11px 20px", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 10, color: C.textMuted, cursor: "pointer", fontSize: 14, fontFamily: "inherit" }}>← Back</button>
+                <button onClick={() => setStep(5)} style={{ flex: 1, padding: "11px", background: C.purple, border: "none", borderRadius: 10, color: "#fff", cursor: "pointer", fontSize: 14, fontFamily: "inherit", fontWeight: 500 }}>Looks good →</button>
               </div>
             </div>
           )}
 
-          {/* STEP 4: What are you building */}
-          {step === 4 && (
+          {/* STEP 5: What are you building */}
+          {step === 5 && (
             <div>
               <div style={{ marginBottom: 32 }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: C.purpleLight, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Step 4 of 4</div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: C.purpleLight, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Step 5 of 5</div>
                 <h1 style={{ fontSize: 28, fontWeight: 600, color: C.text, letterSpacing: "-0.5px", marginBottom: 10 }}>What are you working on?</h1>
                 <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.65 }}>Describe the specific feature or project. Vantage will generate a PRD informed by your full product context.</p>
               </div>
@@ -286,7 +336,7 @@ export default function OnboardingPage() {
                   ))}
                 </div>
                 <div style={{ display: "flex", gap: 10 }}>
-                  <button type="button" onClick={() => setStep(3)} style={{ padding: "12px 20px", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 10, color: C.textMuted, cursor: "pointer", fontSize: 14, fontFamily: "inherit" }}>← Back</button>
+                  <button type="button" onClick={() => setStep(4)} style={{ padding: "12px 20px", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 10, color: C.textMuted, cursor: "pointer", fontSize: 14, fontFamily: "inherit" }}>← Back</button>
                   <button type="submit" style={{ flex: 1, padding: "12px", background: C.purple, border: "none", borderRadius: 10, color: "#fff", cursor: "pointer", fontSize: 15, fontFamily: "inherit", fontWeight: 600 }}
                     onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = C.purpleHover}
                     onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = C.purple}>
